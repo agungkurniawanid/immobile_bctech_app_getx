@@ -18,24 +18,36 @@ class StockTakeDetailModel {
   final List<Marm>? marm; // List of material unit conversion
   final ValueNotifier<bool> checkboxValidation;
 
+  // PERBAIKAN: Tambahkan properti yang hilang dengan nilai default
+  final String NORMT;
+  final String MATNR;
+  final String MAKTX;
+
   static final _logger = Logger();
 
   StockTakeDetailModel({
     this.werks,
-    this.matnr,
+    String? matnr,
     required this.labst,
     this.lgort,
     required this.insme,
     required this.speme,
-    this.normt,
+    String? normt,
     this.meins,
     this.matkl,
-    required this.maktx,
+    required String maktx,
     required this.isApprove,
     required this.selectedChoice,
     this.marm,
     ValueNotifier<bool>? checkboxValidation,
-  }) : checkboxValidation = checkboxValidation ?? ValueNotifier<bool>(false);
+  }) : // PERBAIKAN: Inisialisasi di initializer list
+       matnr = matnr ?? '',
+       normt = normt ?? '',
+       maktx = maktx,
+       MATNR = matnr ?? '', // Set MATNR sama dengan matnr
+       NORMT = normt ?? '', // Set NORMT sama dengan normt
+       MAKTX = maktx, // Set MAKTX sama dengan maktx
+       checkboxValidation = checkboxValidation ?? ValueNotifier<bool>(false);
 
   Map<String, dynamic> toMap() {
     try {

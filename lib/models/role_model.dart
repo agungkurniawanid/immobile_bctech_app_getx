@@ -16,6 +16,17 @@ class Role {
     this.updatedby,
   });
 
+  // --------- Factory constructor for empty role ---------
+  factory Role.empty() {
+    return Role(
+      stocktake: [],
+      inmodel: [],
+      outmodel: [],
+      updated: '',
+      updatedby: '',
+    );
+  }
+
   // --------- Factory dari JSON biasa ---------
   factory Role.fromJson(Map<String, dynamic> data) {
     return Role(
@@ -43,13 +54,7 @@ class Role {
       );
     } catch (e) {
       print('Error parsing Role from Firestore: $e');
-      return Role(
-        stocktake: [],
-        inmodel: [],
-        outmodel: [],
-        updated: '',
-        updatedby: '',
-      );
+      return Role.empty(); // Use empty constructor here
     }
   }
 
@@ -62,7 +67,13 @@ class Role {
     "updated": updated ?? '',
   };
 
-  // --------- Tambahan opsional: toString untuk debugging ---------
+  // --------- Check if role is empty ---------
+  bool get isEmpty {
+    return (stocktake?.isEmpty ?? true) &&
+        (inmodel?.isEmpty ?? true) &&
+        (outmodel?.isEmpty ?? true);
+  }
+
   @override
   String toString() {
     return 'Role(stocktake: $stocktake, inmodel: $inmodel, outmodel: $outmodel, updated: $updated, updatedby: $updatedby)';

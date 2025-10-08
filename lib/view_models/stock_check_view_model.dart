@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:get/get.dart';
 import 'package:immobile_app_fixed/config/config.dart';
 import 'package:immobile_app_fixed/config/database_config.dart';
+import 'package:immobile_app_fixed/models/request_model.dart';
 import 'package:immobile_app_fixed/models/stock_check_model.dart';
-import 'package:immobile_app_fixed/view_models/stock_request_view_model.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -274,6 +274,6 @@ class StockCheckVM extends GetxController {
 
   // Helper method untuk konversi ke JSON (asumsi ada di file terpisah)
   String toJsonRefreshStock(RequestWorkflow data) {
-    return jsonEncode(data.toJson());
+    return jsonEncode(data.toJsonRefreshStock());
   }
 }

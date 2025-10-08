@@ -5,7 +5,7 @@ class RequestWorkflow {
   final String? email;
   final String? password;
   final String? role;
-  final String? documentno;
+  String? documentno;
   final String? group;
   final String? token;
   final String? username;
@@ -23,8 +23,32 @@ class RequestWorkflow {
     this.lGORT,
   });
 
-  // ----------------- JSON Builders -----------------
+  // ----------------- CopyWith Method untuk mengubah nilai -----------------
+  RequestWorkflow copyWith({
+    int? userid,
+    String? email,
+    String? password,
+    String? role,
+    String? documentno,
+    String? group,
+    String? token,
+    String? username,
+    String? lGORT,
+  }) {
+    return RequestWorkflow(
+      userid: userid ?? this.userid,
+      email: email ?? this.email,
+      password: password ?? this.password,
+      role: role ?? this.role,
+      documentno: documentno ?? this.documentno,
+      group: group ?? this.group,
+      token: token ?? this.token,
+      username: username ?? this.username,
+      lGORT: lGORT ?? this.lGORT,
+    );
+  }
 
+  // ----------------- JSON Builders -----------------
   Map<String, dynamic> toJsonLogin() => {"email": email, "password": password};
 
   Map<String, dynamic> toJsonEmail() => {"documentno": documentno};
@@ -59,7 +83,7 @@ class RequestWorkflow {
 
   Map<String, dynamic> toJsonCategory() => {"userid": userid, "role": role};
 
-  // ----------------- Optional: fromJson (kalau dibutuhkan) -----------------
+  // ----------------- Optional: fromJson -----------------
   factory RequestWorkflow.fromJson(Map<String, dynamic> json) =>
       RequestWorkflow(
         userid: json['userid'],
@@ -75,30 +99,22 @@ class RequestWorkflow {
 }
 
 // ----------------- JSON Encode Helper Functions -----------------
-
 String toJsonLogin(RequestWorkflow data) => json.encode(data.toJsonLogin());
-
 String toJsonEmail(RequestWorkflow data) => json.encode(data.toJsonEmail());
-
-String toAuth(RequestWorkflow data) => json.encode(data.toAuth());
-
 String toJsonApproveSR(RequestWorkflow data) =>
     json.encode(data.toJsonApproveSR());
-
 String toJsonRefreshStock(RequestWorkflow data) =>
     json.encode(data.toJsonRefreshStock());
-
 String toJsonApproveIn(RequestWorkflow data) =>
     json.encode(data.toJsonApproveIn());
-
 String toJsonSaveNoDocument(RequestWorkflow data) =>
     json.encode(data.toJsonSaveNoDocument());
-
 String toJsonGetStock(RequestWorkflow data) =>
     json.encode(data.toJsonGetStock());
-
 String toJsonGetDocument(RequestWorkflow data) =>
     json.encode(data.toJsonGetDocument());
-
 String toJsonCategory(RequestWorkflow data) =>
     json.encode(data.toJsonCategory());
+
+// Helper function untuk Auth (ini berbeda karena mengembalikan Map, bukan String)
+Map<String, dynamic> toAuth(RequestWorkflow data) => data.toAuth();

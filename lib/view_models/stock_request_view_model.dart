@@ -332,15 +332,3 @@ class StockRequestVM extends GetxController {
     return jsonEncode(data);
   }
 }
-
-// Kelas bantuan untuk request workflow (jika masih diperlukan)
-class RequestWorkflow {
-  String? documentno;
-  String? group;
-
-  RequestWorkflow({this.documentno, this.group});
-
-  Map<String, dynamic> toJson() {
-    return {'documentno': documentno, 'group': group};
-  }
-}

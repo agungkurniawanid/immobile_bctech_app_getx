@@ -1,3 +1,5 @@
+import 'package:immobile_app_fixed/models/account_model.dart';
+import 'package:immobile_app_fixed/models/category_model.dart';
 import 'package:immobile_app_fixed/models/out_model.dart';
 import 'package:logger/logger.dart';
 import 'package:path/path.dart';
@@ -98,9 +100,6 @@ class DatabaseHelper {
     );
   }
 
-  // ------------------------------
-  // USER
-  // ------------------------------
   Future<int> loginUser(Account account, String hasLogin) async {
     final db = await database;
     account.hasLogin = hasLogin;
@@ -145,6 +144,30 @@ class DatabaseHelper {
     } catch (e) {
       Logger().e(e);
       return null;
+    }
+  }
+
+  // Dalam class DatabaseHelper
+  Future<List<Category>> getCategoryWithRole(String role) async {
+    try {
+      final db = await database;
+      var res = await db.rawQuery("SELECT * FROM category WHERE category = ?", [
+        role,
+      ]);
+
+      return res
+          .map(
+            (map) => Category(
+              id: map['id'] as int?,
+              category: map['category'] as String? ?? '',
+              inventoryGroupId: map['inventory_group_id'] as String? ?? '',
+              inventoryGroupName: map['inventory_group_name'] as String? ?? '',
+            ),
+          )
+          .toList();
+    } catch (e) {
+      Logger().e(e);
+      return [];
     }
   }
 
@@ -200,21 +223,4 @@ class DatabaseHelper {
       return null;
     }
   }
-}
-
-// ------------------------------
-// Model Akun
-// ------------------------------
-class Account {
-  final int userid;
-  final String name;
-  final String email;
-  String hasLogin;
-
-  Account({
-    required this.userid,
-    required this.name,
-    required this.email,
-    required this.hasLogin,
-  });
 }
