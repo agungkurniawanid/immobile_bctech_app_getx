@@ -1,5 +1,5 @@
-import 'package:immobile/config/config.dart';
 import 'package:get/get.dart';
+import 'package:immobile_app_fixed/config/config.dart';
 import 'package:intl/intl.dart';
 
 class GlobalVM extends GetxController {

@@ -1,14 +1,15 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'details_out_model.dart';
 import 'immobileitem_model.dart';
 import 'detail_double_out_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Model utama untuk data pengeluaran barang (Out)
 class OutModel implements ImmobileItem {
-  String? recordid;
-  String? createdat;
+  String? recordId;
+  String? createdAt;
   String? created;
-  String? createdby;
+  String? createdBy;
   String? inventoryGroup;
   String? location;
   String? locationName;
@@ -31,10 +32,10 @@ class OutModel implements ImmobileItem {
   String? postingDate;
 
   OutModel({
-    this.recordid,
-    this.createdat,
+    this.recordId,
+    this.createdAt,
     this.created,
-    this.createdby,
+    this.createdBy,
     this.inventoryGroup,
     this.location,
     this.locationName,
@@ -57,45 +58,48 @@ class OutModel implements ImmobileItem {
     this.postingDate,
   });
 
-  /// 🔹 Override dari ImmobileItem
+  /// ✅ Override method dari ImmobileItem
   @override
   String getApprovedat(String user) {
-    String maxDate = "";
+    String maxDate = '';
 
     if (updatedBy == user) {
-      maxDate = updated ?? "";
+      maxDate = updated ?? '';
     }
 
-    if (detail != null) {
-      for (var list in detail!.where(
-        (e) => e.approveName == user && (e.updatedAt.isNotEmpty),
-      )) {
-        final updatedAt = DateTime.tryParse(list.updatedAt);
-        final maxDateParsed = DateTime.tryParse(maxDate);
+    if (detail != null && detail!.isNotEmpty) {
+      for (var d in detail!) {
+        if (d.approveName == user && d.updatedAt.isNotEmpty) {
+          final updatedAt = DateTime.tryParse(d.updatedAt);
+          final maxDateParsed = DateTime.tryParse(maxDate);
 
-        if (updatedAt != null &&
-            (maxDateParsed == null || maxDateParsed.isBefore(updatedAt))) {
-          maxDate = list.updatedAt;
+          if (updatedAt != null &&
+              (maxDateParsed == null || maxDateParsed.isBefore(updatedAt))) {
+            maxDate = d.updatedAt;
+          }
         }
       }
     }
+
     return maxDate;
   }
 
-  /// 🔹 Factory untuk parsing JSON mentah
+  /// ✅ Factory untuk parsing dari JSON biasa
   factory OutModel.fromJson(Map<String, dynamic> data) {
     return OutModel(
-      recordid: data['recordid'] ?? "",
-      createdat: data['createdat'] ?? "",
-      created: data['created'] ?? "",
-      createdby: data['createdby'] ?? "",
-      inventoryGroup: data['inventory_group'] ?? "",
-      location: data['location'] ?? "",
-      locationName: data['location_name'] ?? "",
-      deliveryDate: data['delivery_date'] ?? "",
-      totalItem: data['total_item'] ?? 0,
-      totalQuantity: data['total_quantities'] ?? "",
-      item: data['item'] ?? "",
+      recordId: data['recordid'] ?? '',
+      createdAt: data['createdat'] ?? '',
+      created: data['created'] ?? '',
+      createdBy: data['createdby'] ?? '',
+      inventoryGroup: data['inventory_group'] ?? '',
+      location: data['location'] ?? '',
+      locationName: data['location_name'] ?? '',
+      deliveryDate: data['delivery_date'] ?? '',
+      totalItem: (data['total_item'] is int)
+          ? data['total_item']
+          : int.tryParse(data['total_item']?.toString() ?? '0') ?? 0,
+      totalQuantity: data['total_quantities']?.toString() ?? '',
+      item: data['item'] ?? '',
       detail:
           (data['detail'] as List?)
               ?.map((e) => DetailItem.fromJson(e))
@@ -106,21 +110,21 @@ class OutModel implements ImmobileItem {
               ?.map((e) => DetailDouble.fromJson(e))
               .toList() ??
           [],
-      isApprove: data['isapprove'] ?? "",
-      isSync: data['issync'] ?? "",
-      docType: data['doctype'] ?? "",
-      clientId: data['clientid'] ?? "",
-      orgId: data['orgid'] ?? "",
-      updated: data['updated'] ?? "",
-      updatedBy: data['updatedby'] ?? "",
-      documentNo: data['documentno'] ?? "",
-      matDoc: data['matdoc'] ?? "",
-      flag: data['flag'] ?? "",
-      postingDate: data['postingdate'] ?? "",
+      isApprove: data['isapprove'] ?? '',
+      isSync: data['issync'] ?? '',
+      docType: data['doctype'] ?? '',
+      clientId: data['clientid'] ?? '',
+      orgId: data['orgid'] ?? '',
+      updated: data['updated'] ?? '',
+      updatedBy: data['updatedby'] ?? '',
+      documentNo: data['documentno'] ?? '',
+      matDoc: data['matdoc'] ?? '',
+      flag: data['flag'] ?? '',
+      postingDate: data['postingdate'] ?? '',
     );
   }
 
-  /// 🔹 Factory dari Firestore DocumentSnapshot
+  /// ✅ Factory dari Firestore DocumentSnapshot
   factory OutModel.fromDocumentSnapshot(
     DocumentSnapshot<Map<String, dynamic>> doc,
   ) {
@@ -128,16 +132,16 @@ class OutModel implements ImmobileItem {
     return OutModel.fromJson(data);
   }
 
-  /// 🔹 Clone instance
+  /// ✅ Clone instance
   OutModel clone() => OutModel.fromJson(toMap());
 
-  /// 🔹 Convert ke Map
+  /// ✅ Konversi ke Map (untuk disimpan ke Firestore / JSON)
   Map<String, dynamic> toMap() {
     return {
-      'recordid': recordid,
-      'createdat': createdat,
+      'recordid': recordId,
+      'createdat': createdAt,
       'created': created,
-      'createdby': createdby,
+      'createdby': createdBy,
       'inventory_group': inventoryGroup,
       'location': location,
       'location_name': locationName,
@@ -161,6 +165,6 @@ class OutModel implements ImmobileItem {
     };
   }
 
-  /// 🔹 Convert ke JSON String
+  /// ✅ Konversi ke JSON String
   String toJsonString() => jsonEncode(toMap());
 }

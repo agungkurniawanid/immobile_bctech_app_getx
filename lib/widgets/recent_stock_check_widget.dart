@@ -1,12 +1,9 @@
 import 'package:get/get.dart';
+import 'package:immobile_app_fixed/constants/utils_constant.dart';
+import 'package:immobile_app_fixed/view_models/global_view_model.dart';
+import 'package:immobile_app_fixed/view_models/stock_check_view_model.dart';
 import 'package:intl/intl.dart';
-import 'package:immobile/config/globalVar.dart';
-import 'package:immobile/viewmodel/stockcheckvm.dart';
-
-import 'package:immobile/viewmodel/globalvm.dart';
 import 'package:flutter/material.dart';
-import 'package:immobile/widget/text.dart';
-import 'package:immobile/widget/utils.dart';
 
 class RecentStockCheck extends StatelessWidget {
   final int index;
@@ -15,30 +12,45 @@ class RecentStockCheck extends StatelessWidget {
   final double iconSize;
   final double fontSize;
   final currency = NumberFormat("#,###", "en_US");
-  double height;
+  final double height;
 
-  StockCheckVM stockCheckVM = Get.find();
-  GlobalVM globalVM = Get.find();
+  final StockCheckVM stockCheckVM = Get.find();
+  final GlobalVM globalVM = Get.find();
 
-  RecentStockCheck(
-      {this.index,
-      this.icon,
-      this.elevation = 9,
-      this.iconSize = 0.10,
-      this.fontSize = 14.0,
-      this.height = 40});
+  RecentStockCheck({
+    this.index = 0,
+    this.icon = Icons.check,
+    this.elevation = 9,
+    this.iconSize = 0.10,
+    this.fontSize = 14.0,
+    this.height = 40,
+  });
+
+  String _formatLastTransaction(String formattedUpdatedAt) {
+    if (formattedUpdatedAt.contains("Today") ||
+        formattedUpdatedAt.contains("Yesterday")) {
+      return formattedUpdatedAt;
+    }
+    return globalVM.stringToDateWithTime(formattedUpdatedAt);
+  }
 
   @override
   Widget build(BuildContext context) {
     double baseWidth = 360;
     double fem = MediaQuery.of(context).size.width / baseWidth;
     double ffem = fem * 0.97;
+
+    // Safety check untuk index
+    if (stockCheckVM.toliststock.length <= index) {
+      return SizedBox(); // Return empty widget jika index tidak valid
+    }
+
+    final stockItem = stockCheckVM.toliststock[index];
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          // woex1cHR (4:817)
-          // padding: EdgeInsets.fromLTRB(0 * fem, 0 * fem, 0 * fem, 6 * fem),
           width: 155 * fem,
           height: 100 * fem,
           decoration: BoxDecoration(
@@ -55,8 +67,8 @@ class RecentStockCheck extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header dengan warna
               Container(
-                // autogroupd6pk4v7 (UM5H3kTqHfqtnm2TNqD6pK)
                 margin: EdgeInsets.fromLTRB(0 * fem, 0 * fem, 0 * fem, 6 * fem),
                 width: double.infinity,
                 height: 31 * fem,
@@ -69,9 +81,9 @@ class RecentStockCheck extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    '${stockCheckVM.toliststock.value[index].location}',
+                    stockItem.location ?? 'Unknown Location',
                     textAlign: TextAlign.center,
-                    style: SafeGoogleFont(
+                    style: safeGoogleFont(
                       'Roboto',
                       fontSize: 16 * ffem,
                       fontWeight: FontWeight.w600,
@@ -81,12 +93,13 @@ class RecentStockCheck extends StatelessWidget {
                   ),
                 ),
               ),
+
+              // Last Transaction
               Container(
-                // deliverydate14032022uQw (4:821)
                 margin: EdgeInsets.fromLTRB(4 * fem, 0 * fem, 0 * fem, 4 * fem),
                 child: RichText(
                   text: TextSpan(
-                    style: SafeGoogleFont(
+                    style: safeGoogleFont(
                       'Roboto',
                       fontSize: 12 * ffem,
                       fontWeight: FontWeight.w600,
@@ -94,24 +107,11 @@ class RecentStockCheck extends StatelessWidget {
                       color: Color(0xff3d3d3d),
                     ),
                     children: [
+                      TextSpan(text: 'Last Transaction:'),
                       TextSpan(
-                        text: 'Last Transaction:',
-                      ),
-                      TextSpan(
-                        text: stockCheckVM
-                                .toliststock.value[index].formatted_updated_at
-                                .contains("Today")
-                            ? '\n ${stockCheckVM.toliststock.value[index].formatted_updated_at}'
-                            : stockCheckVM.toliststock.value[index]
-                                    .formatted_updated_at
-                                    .contains("Yesterday")
-                                ? '\n${stockCheckVM.toliststock.value[index].formatted_updated_at}'
-                                : "\n" +
-                                    globalVM.stringToDateWithTime(stockCheckVM
-                                        .toliststock
-                                        .value[index]
-                                        .formatted_updated_at),
-                        style: SafeGoogleFont(
+                        text:
+                            '\n${_formatLastTransaction(stockItem.formattedUpdatedAt ?? '')}',
+                        style: safeGoogleFont(
                           'Roboto',
                           fontSize: 12 * ffem,
                           fontWeight: FontWeight.w400,
@@ -123,12 +123,13 @@ class RecentStockCheck extends StatelessWidget {
                   ),
                 ),
               ),
+
+              // Total Item
               Container(
-                // totalitem3CHZ (4:822)
                 margin: EdgeInsets.fromLTRB(4 * fem, 0 * fem, 0 * fem, 4 * fem),
                 child: RichText(
                   text: TextSpan(
-                    style: SafeGoogleFont(
+                    style: safeGoogleFont(
                       'Roboto',
                       fontSize: 12 * ffem,
                       fontWeight: FontWeight.w600,
@@ -136,13 +137,10 @@ class RecentStockCheck extends StatelessWidget {
                       color: Color(0xff3d3d3d),
                     ),
                     children: [
+                      TextSpan(text: 'Total Item: '),
                       TextSpan(
-                        text: 'Total Item: ',
-                      ),
-                      TextSpan(
-                        text:
-                            '${stockCheckVM.toliststock.value[index].detail.length}',
-                        style: SafeGoogleFont(
+                        text: '${stockItem.detail?.length ?? 0}',
+                        style: safeGoogleFont(
                           'Roboto',
                           fontSize: 12 * ffem,
                           fontWeight: FontWeight.w400,
@@ -157,9 +155,6 @@ class RecentStockCheck extends StatelessWidget {
             ],
           ),
         ),
-        // SizedBox(
-        //   width: 10 * fem,
-        // ),
       ],
     );
   }
