@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:immobile_app_fixed/constants/theme.dart';
+import 'package:immobile_app_fixed/constants/theme_constant.dart';
 
 class BtnWidget extends StatelessWidget {
   final VoidCallback onPressed;

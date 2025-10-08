@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:immobile_app_fixed/view_models/historyvm.dart';
+import 'package:immobile_app_fixed/view_models/history_view_model.dart';
 import 'package:immobile_app_fixed/view_models/pid_view_model.dart';
 import 'package:immobile_app_fixed/view_models/stock_request_view_model.dart';
 import 'categoryvm.dart';

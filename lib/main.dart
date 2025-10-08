@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:immobile_app_fixed/page/splash_screen_page.dart';
+import 'package:immobile_app_fixed/pages/splash_screen_page.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:google_fonts/google_fonts.dart';

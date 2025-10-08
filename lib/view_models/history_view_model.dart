@@ -1,3 +1,4 @@
+// history_view_model.dart
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -49,7 +50,7 @@ class HistoryViewModel extends GetxController {
     stockList.bindStream(reportsStream());
   }
 
-  Future<void> _processCombinedStream(
+  Future<void> processCombinedStream(
     List<Stream<QuerySnapshot>> streams,
   ) async {
     final combinedStream = StreamZip(streams);
@@ -59,26 +60,21 @@ class HistoryViewModel extends GetxController {
 
       for (final query in snapshots) {
         for (final doc in query.docs) {
-          final String docType = doc.data()['doctype'];
+          final data = doc.data() as Map<String, dynamic>? ?? {};
+          final String docType = data['doctype']?.toString() ?? '';
           final HistoryModel historyModel;
 
           switch (docType) {
             case 'IN':
-              historyModel = HistoryModel.fromDocumentSnapshotInModel(
-                documentSnapshot: doc,
-              );
-              _removeDuplicateByPurchaseOrder(historyModel.ebeln);
+              historyModel = HistoryModel.fromDocumentSnapshotInModel(doc);
+              _removeDuplicateByPurchaseOrder(historyModel.ebeln ?? '');
               break;
             case 'SR':
-              historyModel = HistoryModel.fromDocumentSnapshotOut(
-                documentSnapshot: doc,
-              );
-              _removeDuplicateByDocumentNumber(historyModel.documentNo);
+              historyModel = HistoryModel.fromDocumentSnapshotOut(doc);
+              _removeDuplicateByDocumentNumber(historyModel.documentNo ?? '');
               break;
             default:
-              historyModel = HistoryModel.fromDocumentSnapshotStock(
-                documentSnapshot: doc,
-              );
+              historyModel = HistoryModel.fromDocumentSnapshotStock(doc);
           }
           result.add(historyModel);
         }
@@ -206,15 +202,16 @@ class HistoryViewModel extends GetxController {
   }
 
   HistoryModel _createHistoryModelFromDoc(QueryDocumentSnapshot doc) {
-    final String docType = doc.data()['doctype'];
+    final data = doc.data() as Map<String, dynamic>? ?? {};
+    final String docType = data['doctype']?.toString() ?? '';
 
     switch (docType) {
       case 'IN':
-        return HistoryModel.fromDocumentSnapshotInModel(documentSnapshot: doc);
+        return HistoryModel.fromDocumentSnapshotInModel(doc);
       case 'SR':
-        return HistoryModel.fromDocumentSnapshotOut(documentSnapshot: doc);
+        return HistoryModel.fromDocumentSnapshotOut(doc);
       default:
-        return HistoryModel.fromDocumentSnapshotStock(documentSnapshot: doc);
+        return HistoryModel.fromDocumentSnapshotStock(doc);
     }
   }
 
@@ -260,11 +257,11 @@ class HistoryViewModel extends GetxController {
     List<HistoryModel> result,
   ) {
     for (final category in categoryList) {
-      final hasMatchingCategory = historyModel.detail.any(
+      final hasMatchingCategory = historyModel.detail?.any(
         (element) => element.inventoryGroup == category.inventoryGroupId,
       );
 
-      if (hasMatchingCategory) {
+      if (hasMatchingCategory == true) {
         result.removeWhere(
           (element) => element.documentNo == historyModel.documentNo,
         );
@@ -288,10 +285,10 @@ class HistoryViewModel extends GetxController {
           historyList.value = [];
 
           for (final doc in query.docs) {
-            final String docType = doc.data()['doctype'];
-            final String key = doc.data()['documentNo'];
+            final data = doc.data() as Map<String, dynamic>? ?? {};
+            final String? key = data['documentNo']?.toString();
 
-            if (!uniqueKeys.contains(key)) {
+            if (key != null && !uniqueKeys.contains(key)) {
               uniqueKeys.add(key);
 
               final HistoryModel historyModel = _createHistoryModelFromDoc(doc);
