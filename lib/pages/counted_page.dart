@@ -8,7 +8,7 @@ import 'package:immobile_app_fixed/widgets/text_widget.dart';
 class CountedPage extends StatefulWidget {
   final int index;
 
-  const CountedPage({Key? key, required this.index}) : super(key: key);
+  const CountedPage({super.key, required this.index});
 
   @override
   State<CountedPage> createState() => _CountedPageState();
@@ -39,7 +39,6 @@ class _CountedPageState extends State<CountedPage> {
         .toList();
   }
 
-  // Search functionality
   void _startSearch() {
     setState(() => _isSearching = true);
   }
@@ -60,9 +59,7 @@ class _CountedPageState extends State<CountedPage> {
     });
   }
 
-  // Calculation methods
   double _getConversionRate(StockTakeDetailModel item, String unitType) {
-    // Pastikan marm tidak null
     final marmList = (item.marm ?? []).where((element) {
       final meinh = element.meinh ?? '';
 
@@ -82,12 +79,12 @@ class _CountedPageState extends State<CountedPage> {
   double _calculateTotalQuantity(StockTakeDetailModel item, String unitType) {
     final filteredItems = _dropdownValue == "All"
         ? _stockTickVm.tolistforinputstocktake
-              .where((element) => element.matnr == item.MATNR)
+              .where((element) => element.matnr == item.mATNR)
               .toList()
         : _stockTickVm.tolistforinputstocktake
               .where(
                 (element) =>
-                    element.matnr == item.MATNR &&
+                    element.matnr == item.mATNR &&
                     element.selectedChoice == _dropdownValue,
               )
               .toList();
@@ -106,7 +103,7 @@ class _CountedPageState extends State<CountedPage> {
   int _calculateTotalPcs(StockTakeDetailModel item, String flag) {
     if (flag == "stock") {
       final items = _stockTickVm.tolistdocument[widget.index].detail
-          .where((element) => element.MATNR == item.MATNR)
+          .where((element) => element.mATNR == item.mATNR)
           .toList();
       return items.fold(0, (sum, element) => sum + element.insme.toInt());
     } else {
@@ -114,14 +111,14 @@ class _CountedPageState extends State<CountedPage> {
           ? _stockTickVm.tolistforinputstocktake
                 .where(
                   (element) =>
-                      element.matnr == item.MATNR &&
+                      element.matnr == item.mATNR &&
                       element.createdBy == _globalVm.username.value,
                 )
                 .toList()
           : _stockTickVm.tolistforinputstocktake
                 .where(
                   (element) =>
-                      element.matnr == item.MATNR &&
+                      element.matnr == item.mATNR &&
                       element.createdBy == _globalVm.username.value &&
                       element.selectedChoice == _dropdownValue,
                 )
@@ -134,7 +131,6 @@ class _CountedPageState extends State<CountedPage> {
     }
   }
 
-  // UI Components
   Widget _buildSearchField() {
     return TextField(
       controller: _searchController,
@@ -253,7 +249,7 @@ class _CountedPageState extends State<CountedPage> {
               ),
               _ListItemText(
                 flex: 2,
-                text: item.MAKTX,
+                text: item.mAKTX,
                 alignment: Alignment.centerLeft,
               ),
               _ListItemText(
@@ -292,7 +288,7 @@ class _CountedPageState extends State<CountedPage> {
       } else {
         filteredList = document.detail
             .where(
-              (element) => element.MAKTX.toLowerCase().contains(
+              (element) => element.mAKTX.toLowerCase().contains(
                 _searchQuery.toLowerCase(),
               ),
             )
@@ -304,7 +300,7 @@ class _CountedPageState extends State<CountedPage> {
           .toList();
     }
 
-    filteredList.sort((a, b) => a.MAKTX.compareTo(b.MAKTX));
+    filteredList.sort((a, b) => a.mAKTX.compareTo(b.mAKTX));
     return filteredList;
   }
 
@@ -333,7 +329,6 @@ class _CountedPageState extends State<CountedPage> {
           Expanded(
             child: Obx(() {
               final filteredList = _getFilteredList();
-
               return ListView.builder(
                 itemCount: filteredList.length,
                 itemBuilder: (context, index) {
@@ -348,7 +343,6 @@ class _CountedPageState extends State<CountedPage> {
   }
 }
 
-// Helper Widgets
 class _HeaderItem extends StatelessWidget {
   final int flex;
   final String text;

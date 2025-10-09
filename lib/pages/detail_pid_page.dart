@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
-import 'dart:ui';
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:immobile_app_fixed/config/database_config.dart';
 import 'package:immobile_app_fixed/config/global_variable_config.dart';
+import 'package:immobile_app_fixed/constants/utils_constant.dart';
 import 'package:immobile_app_fixed/models/category_model.dart';
 import 'package:immobile_app_fixed/models/stock_check_model.dart';
 import 'package:immobile_app_fixed/models/stock_detail_model.dart';
@@ -38,11 +38,11 @@ class _DetailPidPageState extends State<DetailPidPage> {
   bool pcsctnvalidation = true;
   bool leading = true;
   bool fromscan = true;
-  bool isSearching = false;
+  bool _isSearching = false;
 
   final List<String> sortList = ['PO Date', 'Vendor'];
 
-  final listchoice = <ItemChoice>[
+  final List<ItemChoice> listchoice = <ItemChoice>[
     ItemChoice(1, 'Ambient'),
     ItemChoice(2, 'Chiller'),
     ItemChoice(3, 'Frozen'),
@@ -58,7 +58,7 @@ class _DetailPidPageState extends State<DetailPidPage> {
   int typeIndexgood = 0;
   int tabs = 0;
 
-  final Map<int, Widget> myTabs = const {
+  final Map<int, Widget> myTabs = const <int, Widget>{
     0: Text("CTN"),
     1: Text("PCS"),
   };
@@ -77,42 +77,43 @@ class _DetailPidPageState extends State<DetailPidPage> {
 
   final List<StockDetail> listdetailstock = [];
 
-  final currency = NumberFormat("#,###", "en_US");
+  final NumberFormat currency = NumberFormat("#,###", "en_US");
 
-  static const MethodChannel methodChannel =
-      MethodChannel('id.co.cp.immobile/command');
+  static const MethodChannel methodChannel = MethodChannel(
+    'id.co.cp.immobile/command',
+  );
 
-  static const EventChannel scanChannel =
-      EventChannel('id.co.cp.immobile/scan');
+  static const EventChannel scanChannel = EventChannel(
+    'id.co.cp.immobile/scan',
+  );
 
   String barcodeString = "Barcode will be shown here";
   String barcodeSymbology = "Symbology will be shown here";
   String scanTime = "Scan Time will be shown here";
 
   @override
-void initState() {
-  super.initState();
+  void initState() {
+    super.initState();
 
-  handleCountedResult();
+    handleCountedResult();
 
-  _controllermain = TextEditingController();
-  _controllergood = TextEditingController();
-  _searchQuery = TextEditingController();
-  controller = ScrollController();
+    _controllermain = TextEditingController();
+    _controllergood = TextEditingController();
+    _searchQuery = TextEditingController();
+    controller = ScrollController();
 
-  clone = pidVM.tolistpid[widget.index].clone();
+    clone = pidVM.tolistpid[widget.index].clone();
 
-  GlobalVar.choicecategory = "AB";
+    GlobalVar.choicecategory = "AB";
 
-  scanChannel.receiveBroadcastStream().listen(_onEvent, onError: _onError);
-  _createProfile("DataWedgeFlutterDemo");
-  startScan();
-}
-
+    scanChannel.receiveBroadcastStream().listen(_onEvent, onError: _onError);
+    _createProfile("DataWedgeFlutterDemo");
+    startScan();
+  }
 
   Future<void> _sendDataWedgeCommand(String command, String parameter) async {
     try {
-      final String argumentAsJson = jsonEncode({
+      final String argumentAsJson = jsonEncode(<String, String>{
         "command": command,
         "parameter": parameter,
       });
@@ -148,21 +149,27 @@ void initState() {
       if (barcodeString.isNotEmpty) {
         pcsctnnotifier.value = false;
 
-        final details = pidVM.tolistpid[widget.index].detail
-            .where((e) => e.itemCode.contains(barcodeString))
-            .toList();
+        final List<StockDetail> details =
+            (pidVM.tolistpid[widget.index].detail ?? <StockDetail>[])
+                .where(
+                  (StockDetail e) =>
+                      e.itemCode?.contains(barcodeString) ?? false,
+                )
+                .toList();
 
         if (details.isNotEmpty) {
-          final data = details.first;
-          pickedctnmain.value = data.warehouseStockMainCtn;
-          pickedctngood.value = data.warehouseStockGoodCtn;
-          pickedpcsmain.value = data.warehouseStockMain;
-          pickedpcsgood.value = data.warehouseStockGood;
+          final StockDetail data = details.first;
+
+          pickedctnmain.value = data.warehouseStockMainCtn ?? 0;
+          pickedctngood.value = data.warehouseStockGoodCtn ?? 0;
+          pickedpcsmain.value = data.warehouseStockMain ?? 0;
+          pickedpcsgood.value = data.warehouseStockGood ?? 0;
+
           fromscan = false;
 
-          showMaterialModalBottomSheet(
+          showModalBottomSheet(
             context: context,
-            builder: (context) => modalBottomSheet(data),
+            builder: (BuildContext context) => modalBottomSheet(data),
           );
         }
       }
@@ -171,13 +178,12 @@ void initState() {
 
   void _onError(Object error) {
     setState(() {
-      _barcodeString = "Barcode: error";
-      _barcodeSymbology = "Symbology: error";
-      _scanTime = "At: error";
+      barcodeString = "Barcode: error";
+      barcodeSymbology = "Symbology: error";
+      scanTime = "At: error";
     });
   }
 
-  /// Memulai proses scanning
   void startScan() {
     _sendDataWedgeCommand(
       "com.symbol.datawedge.api.SOFT_SCAN_TRIGGER",
@@ -185,7 +191,6 @@ void initState() {
     );
   }
 
-  /// Menghentikan scanning
   void stopScan() {
     _sendDataWedgeCommand(
       "com.symbol.datawedge.api.SOFT_SCAN_TRIGGER",
@@ -193,15 +198,13 @@ void initState() {
     );
   }
 
-  /// Menghitung total stok
   String calculateStock(int mainstock, int goodstock) {
     final int totalstock = mainstock + goodstock;
     return currency.format(totalstock);
   }
 
-  /// Menangani hasil counted PID
   void handleCountedResult() {
-    pidVM.counted().then((result) {
+    pidVM.counted().then((String result) {
       pidVM.countedstring.value = result;
     });
   }
@@ -215,46 +218,31 @@ void initState() {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Detail PID'),
-      ),
-      body: Center(
-        child: Text('Implement your UI here'),
-      ),
-    );
-  }
-}
-
-  Future _showMyDialogApprove(
+  Future<void> _showMyDialogApprove(
     StockModel stockmodel,
     StockDetail stockdetail,
     String tanda,
-    BuildContext context
   ) async {
-    double baseWidth = 312;
-    double fem = MediaQuery.of(context).size.width / baseWidth;
-    double ffem = fem * 0.97;
+    final double baseWidth = 312;
+    final double fem = MediaQuery.of(context).size.width / baseWidth;
+    final double ffem = fem * 0.97;
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
-      // user must tap button!
       builder: (BuildContext context) => StatefulBuilder(
-        builder: (context, setState) {
+        builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
             backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
+            shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(15)),
             ),
-            content: Container(
+            content: SizedBox(
               height: MediaQuery.of(context).size.height / 2.5,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Container(
-                    // mdiwarningcircleut4 (11:1225)
                     margin: EdgeInsets.fromLTRB(
                       0 * fem,
                       0 * fem,
@@ -270,7 +258,6 @@ void initState() {
                     ),
                   ),
                   Container(
-                    // areyousuretodiscardallchangesm (11:1227)
                     margin: EdgeInsets.fromLTRB(
                       0 * fem,
                       0 * fem,
@@ -281,25 +268,23 @@ void initState() {
                     child: Text(
                       'Are you sure to save all changes made in this Product? ',
                       textAlign: TextAlign.center,
-                      style: SafeGoogleFont(
+                      style: safeGoogleFont(
                         'Roboto',
                         fontSize: 16 * ffem,
                         fontWeight: FontWeight.w600,
                         height: 1.1725 * ffem / fem,
-                        color: Color(0xff2d2d2d),
+                        color: const Color(0xff2d2d2d),
                       ),
                     ),
                   ),
-                  Container(
-                    // autogroupf5ebdRu (UM6eDoseJp3PyzDupvF5EB)
+                  SizedBox(
                     width: double.infinity,
                     height: 25 * fem,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
+                      children: <Widget>[
                         GestureDetector(
                           child: Container(
-                            // cancelbutton8Nf (11:1273)
                             margin: EdgeInsets.fromLTRB(
                               20 * fem,
                               0 * fem,
@@ -314,12 +299,13 @@ void initState() {
                             ),
                             height: double.infinity,
                             decoration: BoxDecoration(
-                              border: Border.all(color: Color(0xfff44236)),
-                              color: Color(0xffffffff),
+                              border: Border.all(
+                                color: const Color(0xfff44236),
+                              ),
+                              color: const Color(0xffffffff),
                               borderRadius: BorderRadius.circular(12 * fem),
                             ),
                             child: Center(
-                              // cancelnCK (11:1275)
                               child: SizedBox(
                                 width: 30 * fem,
                                 height: 30 * fem,
@@ -337,7 +323,6 @@ void initState() {
                         ),
                         GestureDetector(
                           child: Container(
-                            // savebuttonSnf (11:1278)
                             padding: EdgeInsets.fromLTRB(
                               24 * fem,
                               5 * fem,
@@ -346,18 +331,17 @@ void initState() {
                             ),
                             height: double.infinity,
                             decoration: BoxDecoration(
-                              color: Color(0xff2cab0c),
+                              color: const Color(0xff2cab0c),
                               borderRadius: BorderRadius.circular(12 * fem),
-                              boxShadow: [
+                              boxShadow: <BoxShadow>[
                                 BoxShadow(
-                                  color: Color(0x3f000000),
+                                  color: const Color(0x3f000000),
                                   offset: Offset(0 * fem, 4 * fem),
                                   blurRadius: 2 * fem,
                                 ),
                               ],
                             ),
                             child: Center(
-                              // checkcircle7du (11:1280)
                               child: SizedBox(
                                 width: 30 * fem,
                                 height: 30 * fem,
@@ -370,94 +354,65 @@ void initState() {
                             ),
                           ),
                           onTap: () async {
-                            var username = await DatabaseHelper.db.getUser();
+                            final String? username = await DatabaseHelper.db
+                                .getUser();
+                            final bool fromscan = false;
 
-                            String todaytime = DateFormat(
+                            final String todaytime = DateFormat(
                               'yyyy-MM-dd HH:mm:ss',
                             ).format(DateTime.now());
                             List<Map<String, dynamic>> maptdata;
+
                             if (fromscan == false) {
-                              stockdetail.is_scanned = "Y";
+                              stockdetail.isScanned = "Y";
                             }
+
                             if (tanda == "all") {
-                              // handleCountedResult();
-                              // pidVM.tolistpid.value[widget.index].detail
-                              //     .clear();
-                              // if (_isSearching == true) {
-                              //   for (var item in listdetailstock) {
-                              //     pidVM.tolistpid.value[widget.index]
-                              //         .detail
-                              //         .add(item);
-                              //   }
-                              // }
-                              stockmodel.isapprove = "Counted";
+                              stockmodel.isApprove = "Counted";
                               stockmodel.updatedby = username;
                               stockmodel.updated = todaytime;
-                              stockmodel.formatted_updated_at = todaytime;
+                              stockmodel.formattedUpdatedAt = todaytime;
                               stockmodel.color = "GREEN";
-
-                              // stockmodel.update
                             } else {
-                              stockdetail.warehouse_stock_good =
+                              stockdetail.warehouseStockGood =
                                   pickedpcsgood.value;
-                              stockdetail.warehouse_stock_good_ctn =
+                              stockdetail.warehouseStockGoodCtn =
                                   pickedctngood.value;
-                              stockdetail.warehouse_stock_main =
+                              stockdetail.warehouseStockMain =
                                   pickedpcsmain.value;
-                              stockdetail.warehouse_stock_main_ctn =
+                              stockdetail.warehouseStockMainCtn =
                                   pickedctnmain.value;
                               stockdetail.checked = 1;
-                              stockdetail.approvename = username;
-                              stockdetail.updated_at = todaytime;
+                              stockdetail.approveName = username;
+                              stockdetail.updatedAt = todaytime;
                             }
 
                             Get.back();
                             Get.back();
 
                             if (tanda == "all") {
-                              // var testing = pidVM
-                              //     .tolistpid.value[widget.index].detail
-                              //     .where(
-                              //         (element) => element.checked == 1)
-                              //     .toList();
-                              // String year = DateFormat('yyyy')
-                              //         .format(DateTime.now()) +
-                              //     "-";
-                              // int documentint = int.parse(pidVM
-                              //         .countedstring.value
-                              //         .substring(
-                              //             5,
-                              //             pidVM.countedstring.value
-                              //                 .length)) +
-                              //     1;
-                              // String convertdocument =
-                              //     year + documentint.toString();
+                              stockmodel.recordid =
+                                  PidViewModel().countedstring.value;
 
-                              stockmodel.recordid = pidVM.countedstring.value;
-                              maptdata = pidVM
-                                  .tolistpid
-                                  .value[widget.index]
-                                  .detail
-                                  .where((element) => element.checked == 1)
-                                  .toList()
-                                  .map((person) => person.toMap())
-                                  .toList();
-                              pidVM.approveall(stockmodel, "Y", maptdata);
-                              pidVM.sendtohistory(stockmodel, maptdata);
-                              pidVM.sendcounted(stockmodel.recordid);
-                              bool hasil = await pidVM.refreshstock(
-                                pidVM.tolistpid.value[widget.index],
-                              );
+                              maptdata =
+                                  (pidVM.tolistpid[widget.index].detail ?? [])
+                                      .where((element) => element.checked == 1)
+                                      .map((person) => person.toMap())
+                                      .toList();
+
+                              pidVM.approveAll(stockmodel, "Y", maptdata);
+                              pidVM.sendToHistory(stockmodel, maptdata);
+                              pidVM.sendCounted(stockmodel.recordid!);
+
                               Get.back();
                             } else {
-                              maptdata = pidVM
-                                  .tolistpid
-                                  .value[widget.index]
-                                  .detail
-                                  .map((person) => person.toMap())
-                                  .toList();
-                              pidVM.approvestock(
-                                pidVM.tolistpid.value[widget.index],
+                              maptdata =
+                                  (pidVM.tolistpid[widget.index].detail ?? [])
+                                      .map((person) => person.toMap())
+                                      .toList();
+
+                              pidVM.approveStock(
+                                pidVM.tolistpid[widget.index],
                                 maptdata,
                               );
                             }
@@ -470,7 +425,7 @@ void initState() {
                               textColor: Colors.white,
                             );
                           },
-                        ), // )
+                        ),
                       ],
                     ),
                   ),
@@ -483,28 +438,27 @@ void initState() {
     );
   }
 
-  Future _showMyDialogReject(String flag) async {
-    double baseWidth = 312;
-    double fem = MediaQuery.of(context).size.width / baseWidth;
-    double ffem = fem * 0.97;
+  Future<void> _showMyDialogReject(String flag) async {
+    final double baseWidth = 312;
+    final double fem = MediaQuery.of(context).size.width / baseWidth;
+    final double ffem = fem * 0.97;
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
-      // user must tap button!
       builder: (BuildContext context) => StatefulBuilder(
-        builder: (context, setState) {
+        builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
             backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
+            shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(15)),
             ),
-            content: Container(
+            content: SizedBox(
               height: MediaQuery.of(context).size.height / 2.5,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Container(
-                    // mdiwarningcircleut4 (11:1225)
                     margin: EdgeInsets.fromLTRB(
                       0 * fem,
                       0 * fem,
@@ -520,7 +474,6 @@ void initState() {
                     ),
                   ),
                   Container(
-                    // areyousuretodiscardallchangesm (11:1227)
                     margin: EdgeInsets.fromLTRB(
                       0 * fem,
                       0 * fem,
@@ -531,25 +484,23 @@ void initState() {
                     child: Text(
                       'Are you sure to discard all changes made in this Area?',
                       textAlign: TextAlign.center,
-                      style: SafeGoogleFont(
+                      style: safeGoogleFont(
                         'Roboto',
                         fontSize: 16 * ffem,
                         fontWeight: FontWeight.w600,
                         height: 1.1725 * ffem / fem,
-                        color: Color(0xff2d2d2d),
+                        color: const Color(0xff2d2d2d),
                       ),
                     ),
                   ),
-                  Container(
-                    // autogroupf5ebdRu (UM6eDoseJp3PyzDupvF5EB)
+                  SizedBox(
                     width: double.infinity,
                     height: 25 * fem,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
+                      children: <Widget>[
                         GestureDetector(
                           child: Container(
-                            // cancelbutton8Nf (11:1273)
                             margin: EdgeInsets.fromLTRB(
                               20 * fem,
                               0 * fem,
@@ -564,12 +515,13 @@ void initState() {
                             ),
                             height: double.infinity,
                             decoration: BoxDecoration(
-                              border: Border.all(color: Color(0xfff44236)),
-                              color: Color(0xffffffff),
+                              border: Border.all(
+                                color: const Color(0xfff44236),
+                              ),
+                              color: const Color(0xffffffff),
                               borderRadius: BorderRadius.circular(12 * fem),
                             ),
                             child: Center(
-                              // cancelnCK (11:1275)
                               child: SizedBox(
                                 width: 30 * fem,
                                 height: 30 * fem,
@@ -582,13 +534,11 @@ void initState() {
                             ),
                           ),
                           onTap: () {
-                            // Get.back();
                             Get.back();
                           },
                         ),
                         GestureDetector(
                           child: Container(
-                            // savebuttonSnf (11:1278)
                             padding: EdgeInsets.fromLTRB(
                               24 * fem,
                               5 * fem,
@@ -597,18 +547,17 @@ void initState() {
                             ),
                             height: double.infinity,
                             decoration: BoxDecoration(
-                              color: Color(0xff2cab0c),
+                              color: const Color(0xff2cab0c),
                               borderRadius: BorderRadius.circular(12 * fem),
-                              boxShadow: [
+                              boxShadow: <BoxShadow>[
                                 BoxShadow(
-                                  color: Color(0x3f000000),
+                                  color: const Color(0x3f000000),
                                   offset: Offset(0 * fem, 4 * fem),
                                   blurRadius: 2 * fem,
                                 ),
                               ],
                             ),
                             child: Center(
-                              // checkcircle7du (11:1280)
                               child: SizedBox(
                                 width: 30 * fem,
                                 height: 30 * fem,
@@ -622,29 +571,11 @@ void initState() {
                           ),
                           onTap: () async {
                             if (flag == "refresh") {
-                              bool hasil = await pidVM.refreshstock(
-                                pidVM.tolistpid.value[widget.index],
-                              );
                               Get.back();
                             } else {
                               Get.back();
                               Get.back();
                             }
-
-                            // var backup = inVM.tolistPObackup.value
-                            //     .where(
-                            //         (element) => element.ebeln == ebeln)
-                            //     .toList()[0]
-                            //     .T_DATA;
-                            // if (backup.length == 0) {
-                            // } else {
-                            //   inVM.tolistPO.value[widget.index].T_DATA
-                            //       .clear();
-                            //   for (int i = 0; i < backup.length; i++) {
-                            //     inVM.tolistPO.value[widget.index].T_DATA
-                            //         .add(backup[i]);
-                            //   }
-                            // }
                           },
                         ),
                       ],
@@ -659,22 +590,21 @@ void initState() {
     );
   }
 
-  Future _showMyDialog(StockDetail indetail, bool type) async {
-    double baseWidth = 312;
-    double fem = MediaQuery.of(context).size.width / baseWidth;
-    double ffem = fem * 0.97;
+  Future<void> _showMyDialog(StockDetail indetail, bool type) async {
+    final double baseWidth = 312;
+    final double fem = MediaQuery.of(context).size.width / baseWidth;
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
-      // user must tap button!
       builder: (BuildContext context) => StatefulBuilder(
-        builder: (context, setState) {
+        builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
             backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
+            shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(15)),
             ),
-            content: Container(
+            content: SizedBox(
               height: MediaQuery.of(context).size.height / 1,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -682,8 +612,8 @@ void initState() {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 0, 0, 15),
                     child: Text(
-                      '${indetail.item_name}',
-                      style: TextStyle(
+                      '${indetail.itemName}',
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -692,16 +622,15 @@ void initState() {
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 0, 0, 15),
-                    child: CupertinoSlidingSegmentedControl(
+                    child: CupertinoSlidingSegmentedControl<int>(
                       groupValue: tabs,
                       children: myTabs,
-                      onValueChanged: (i) {
+                      onValueChanged: (int? i) {
                         setState(() {
-                          tabs = i;
+                          tabs = i ?? 0;
+                          type = i == 1;
 
-                          tabs == 0 ? type = false : type = true;
-
-                          if (type == true) {
+                          if (type) {
                             _controllermain = TextEditingController(
                               text: pickedpcsmain.value.toString(),
                             );
@@ -730,9 +659,9 @@ void initState() {
                       },
                     ),
                   ),
-                  SizedBox(height: 5),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 15),
+                  const SizedBox(height: 5),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(0, 0, 0, 15),
                     child: Text(
                       'Main',
                       style: TextStyle(
@@ -753,7 +682,7 @@ void initState() {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: InkWell(
-                          child: Center(
+                          child: const Center(
                             child: Text(
                               '-',
                               style: TextStyle(
@@ -765,7 +694,7 @@ void initState() {
                           ),
                           onTap: () {
                             setState(() {
-                              if (type == false) {
+                              if (!type) {
                                 if (_controllermain.text[0] == '0') {
                                   typeIndexmain = 0;
                                   _controllermain = TextEditingController(
@@ -796,26 +725,26 @@ void initState() {
                           },
                         ),
                       ),
-                      Container(
+                      SizedBox(
                         width: 50,
                         height: 50,
                         child: TextField(
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
                           ),
                           keyboardType: TextInputType.number,
-                          inputFormatters: [
+                          inputFormatters: <TextInputFormatter>[
                             FilteringTextInputFormatter.digitsOnly,
                           ],
                           controller: _controllermain,
-                          onChanged: (i) {
+                          onChanged: (String i) {
                             setState(() {
-                              if (type == false && tabs == 0) {
+                              if (!type && tabs == 0) {
                                 typeIndexmain = int.parse(_controllermain.text);
                                 pickedctnmain.value = typeIndexmain;
-                              } else if (type == true && tabs == 1) {
+                              } else if (type && tabs == 1) {
                                 typeIndexmain = int.parse(_controllermain.text);
                                 pickedpcsmain.value = typeIndexmain;
                               }
@@ -831,7 +760,7 @@ void initState() {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: InkWell(
-                          child: Center(
+                          child: const Center(
                             child: Text(
                               '+',
                               style: TextStyle(
@@ -843,19 +772,17 @@ void initState() {
                           ),
                           onTap: () {
                             setState(() {
-                              if (type == false) {
+                              if (!type) {
                                 typeIndexmain++;
                                 _controllermain = TextEditingController(
                                   text: typeIndexmain.toString(),
                                 );
-
                                 pickedctnmain.value = typeIndexmain;
                               } else {
                                 typeIndexmain++;
                                 _controllermain = TextEditingController(
                                   text: typeIndexmain.toString(),
                                 );
-
                                 pickedpcsmain.value = typeIndexmain;
                               }
                             });
@@ -864,9 +791,9 @@ void initState() {
                       ),
                     ],
                   ),
-                  SizedBox(height: 5),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 15),
+                  const SizedBox(height: 5),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(0, 0, 0, 15),
                     child: Text(
                       'Good',
                       style: TextStyle(
@@ -887,7 +814,7 @@ void initState() {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: InkWell(
-                          child: Center(
+                          child: const Center(
                             child: Text(
                               '-',
                               style: TextStyle(
@@ -899,7 +826,7 @@ void initState() {
                           ),
                           onTap: () {
                             setState(() {
-                              if (type == false) {
+                              if (!type) {
                                 if (_controllergood.text[0] == '0') {
                                   typeIndexgood = 0;
                                   _controllergood = TextEditingController(
@@ -925,33 +852,31 @@ void initState() {
                                   );
                                 }
                                 pickedpcsgood.value = typeIndexgood;
-                                // indetail.warehouse_stock_good =
-                                //     typeIndexmain;
                               }
                             });
                           },
                         ),
                       ),
-                      Container(
+                      SizedBox(
                         width: 50,
                         height: 50,
                         child: TextField(
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
                           ),
                           keyboardType: TextInputType.number,
-                          inputFormatters: [
+                          inputFormatters: <TextInputFormatter>[
                             FilteringTextInputFormatter.digitsOnly,
                           ],
                           controller: _controllergood,
-                          onChanged: (i) {
+                          onChanged: (String i) {
                             setState(() {
-                              if (type == false && tabs == 0) {
+                              if (!type && tabs == 0) {
                                 typeIndexgood = int.parse(_controllergood.text);
                                 pickedctngood.value = typeIndexgood;
-                              } else if (type == true && tabs == 1) {
+                              } else if (type && tabs == 1) {
                                 typeIndexgood = int.parse(_controllergood.text);
                                 pickedpcsgood.value = typeIndexgood;
                               }
@@ -967,7 +892,7 @@ void initState() {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: InkWell(
-                          child: Center(
+                          child: const Center(
                             child: Text(
                               '+',
                               style: TextStyle(
@@ -979,19 +904,17 @@ void initState() {
                           ),
                           onTap: () {
                             setState(() {
-                              if (type == false) {
+                              if (!type) {
                                 typeIndexgood++;
                                 _controllergood = TextEditingController(
                                   text: typeIndexgood.toString(),
                                 );
-
                                 pickedctngood.value = typeIndexgood;
                               } else {
                                 typeIndexgood++;
                                 _controllergood = TextEditingController(
                                   text: typeIndexgood.toString(),
                                 );
-
                                 pickedpcsgood.value = typeIndexgood;
                               }
                             });
@@ -1000,19 +923,17 @@ void initState() {
                       ),
                     ],
                   ),
-                  SizedBox(height: 30),
+                  const SizedBox(height: 30),
                   Align(
                     alignment: Alignment.center,
-                    child: Container(
-                      // autogroupf5ebdRu (UM6eDoseJp3PyzDupvF5EB)
+                    child: SizedBox(
                       width: double.infinity,
                       height: 30 * fem,
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
+                        children: <Widget>[
                           GestureDetector(
                             child: Container(
-                              // cancelbutton8Nf (11:1273)
                               margin: EdgeInsets.fromLTRB(
                                 20 * fem,
                                 0 * fem,
@@ -1027,12 +948,13 @@ void initState() {
                               ),
                               height: double.infinity,
                               decoration: BoxDecoration(
-                                border: Border.all(color: Color(0xfff44236)),
-                                color: Color(0xffffffff),
+                                border: Border.all(
+                                  color: const Color(0xfff44236),
+                                ),
+                                color: const Color(0xffffffff),
                                 borderRadius: BorderRadius.circular(12 * fem),
                               ),
                               child: Center(
-                                // cancelnCK (11:1275)
                                 child: SizedBox(
                                   width: 30 * fem,
                                   height: 30 * fem,
@@ -1046,19 +968,18 @@ void initState() {
                             ),
                             onTap: () {
                               pickedctnmain.value =
-                                  indetail.warehouse_stock_main_ctn;
+                                  indetail.warehouseStockMainCtn ?? 0;
                               pickedctngood.value =
-                                  indetail.warehouse_stock_good_ctn;
+                                  indetail.warehouseStockGoodCtn ?? 0;
                               pickedpcsmain.value =
-                                  indetail.warehouse_stock_main;
+                                  indetail.warehouseStockMain ?? 0;
                               pickedpcsgood.value =
-                                  indetail.warehouse_stock_good;
+                                  indetail.warehouseStockGood ?? 0;
                               Get.back();
                             },
                           ),
                           GestureDetector(
                             child: Container(
-                              // savebuttonSnf (11:1278)
                               padding: EdgeInsets.fromLTRB(
                                 24 * fem,
                                 5 * fem,
@@ -1067,18 +988,17 @@ void initState() {
                               ),
                               height: double.infinity,
                               decoration: BoxDecoration(
-                                color: Color(0xff2cab0c),
+                                color: const Color(0xff2cab0c),
                                 borderRadius: BorderRadius.circular(12 * fem),
-                                boxShadow: [
+                                boxShadow: <BoxShadow>[
                                   BoxShadow(
-                                    color: Color(0x3f000000),
+                                    color: const Color(0x3f000000),
                                     offset: Offset(0 * fem, 4 * fem),
                                     blurRadius: 2 * fem,
                                   ),
                                 ],
                               ),
                               child: Center(
-                                // checkcircle7du (11:1280)
                                 child: SizedBox(
                                   width: 30 * fem,
                                   height: 30 * fem,
@@ -1092,7 +1012,6 @@ void initState() {
                             ),
                             onTap: () {
                               Get.back();
-                              // _refreshBottomSheet(indetail);
                             },
                           ),
                         ],
@@ -1109,41 +1028,37 @@ void initState() {
   }
 
   Widget modalBottomSheet(StockDetail detail) {
-    double baseWidth = 360;
-    double fem = MediaQuery.of(context).size.width / baseWidth;
-    double ffem = fem * 0.97;
+    final double baseWidth = 360;
+    final double fem = MediaQuery.of(context).size.width / baseWidth;
+    final double ffem = fem * 0.97;
+
     return Container(
       width: double.infinity,
       margin: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       height: GlobalVar.height * 0.85,
       child: Container(
-        // addqtypickitemoverlaycheckctnj (25:1581)
         padding: EdgeInsets.fromLTRB(0 * fem, 10 * fem, 0 * fem, 0 * fem),
         width: double.infinity,
-        decoration: BoxDecoration(color: Color(0xffffffff)),
+        decoration: const BoxDecoration(color: Color(0xffffffff)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
+          children: <Widget>[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  // editvitasoylemonteadrink250mlG (11:1249)
-                  // margin: EdgeInsets.fromLTRB(0 * fem, 0 * fem, 59 * fem, 10 * fem),
+              children: <Widget>[
+                SizedBox(
                   child: Text(
-                    ' ${detail.item_name}',
-                    style: SafeGoogleFont(
+                    ' ${detail.itemName}',
+                    style: safeGoogleFont(
                       'Roboto',
                       fontSize: 16 * ffem,
                       fontWeight: FontWeight.w600,
                       height: 1.1725 * ffem / fem,
-                      color: Color(0xfff44236),
+                      color: const Color(0xfff44236),
                     ),
                   ),
                 ),
-                Container(
-                  // editvitasoylemonteadrink250mlG (11:1249)
-                  // margin: EdgeInsets.fromLTRB(0 * fem, 0 * fem, 59 * fem, 10 * fem),
+                SizedBox(
                   child: GestureDetector(
                     child: Image.asset(
                       'data/images/cancel-viF.png',
@@ -1152,57 +1067,19 @@ void initState() {
                     ),
                     onTap: () {
                       Get.back();
-                      // if (indetail.uom
-                      //         .where((element) => element.uom == "CTN")
-                      //         .toList()
-                      //         .length !=
-                      //     0) {
-                      //   pickedbox.value = int.parse(indetail.uom
-                      //       .where((element) => element.uom == "CTN")
-                      //       .toList()[0]
-                      //       .total_picked);
-                      // }
-                      // if (indetail.uom
-                      //         .where((element) => element.uom == "PCS")
-                      //         .toList()
-                      //         .length !=
-                      //     0) {
-                      //   pickedbun.value = int.parse(indetail.uom
-                      //       .where((element) => element.uom == "PCS")
-                      //       .toList()[0]
-                      //       .total_picked);
-                      // }
-                      // Get.back();
                     },
                   ),
                 ),
               ],
             ),
-            // Container(
-            //   // meijifreshmilk450mlQac (25:1582)
-            //   margin: EdgeInsets.fromLTRB(1 * fem, 0 * fem, 0 * fem, 9 * fem),
-            //   child: Text(
-            //     '${detail.item_name}',
-            //     textAlign: TextAlign.center,
-            //     style: SafeGoogleFont(
-            //       'Roboto',
-            //       fontSize: 24 * ffem,
-            //       fontWeight: FontWeight.w600,
-            //       height: 1.1725 * ffem / fem,
-            //       color: Color(0xfff44236),
-            //     ),
-            //   ),
-            // ),
             Container(
-              // borderJAC (25:1583)
               margin: EdgeInsets.fromLTRB(0 * fem, 0 * fem, 0 * fem, 5 * fem),
               width: double.infinity,
               height: 1 * fem,
-              decoration: BoxDecoration(color: Color(0xffa8a8a8)),
+              decoration: const BoxDecoration(color: Color(0xffa8a8a8)),
             ),
             GestureDetector(
               child: Container(
-                // imagedCU (25:1595)
                 margin: EdgeInsets.fromLTRB(
                   120 * fem,
                   0 * fem,
@@ -1217,12 +1094,11 @@ void initState() {
                 ),
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Color(0xfff44236)),
-                  color: Color(0xffffffff),
+                  border: Border.all(color: const Color(0xfff44236)),
+                  color: const Color(0xffffffff),
                   borderRadius: BorderRadius.circular(8 * fem),
                 ),
                 child: Center(
-                  // bdbfad6c1c455b9ccc448655df81b3 (25:1597)
                   child: SizedBox(
                     width: 110 * fem,
                     height: 108 * fem,
@@ -1238,13 +1114,11 @@ void initState() {
               },
             ),
             Container(
-              // borderdLt (25:1584)
               width: double.infinity,
               height: 1 * fem,
-              decoration: BoxDecoration(color: Color(0xffa8a8a8)),
+              decoration: const BoxDecoration(color: Color(0xffa8a8a8)),
             ),
             Container(
-              // autogroupmh6gPL4 (Xy4qcxtCLbXzGCKGbFmh6g)
               padding: EdgeInsets.fromLTRB(
                 51 * fem,
                 11 * fem,
@@ -1252,24 +1126,23 @@ void initState() {
                 8 * fem,
               ),
               width: double.infinity,
-              child: ValueListenableBuilder(
+              child: ValueListenableBuilder<bool>(
                 valueListenable: pcsctnnotifier,
-                builder: (BuildContext context, bool value, Widget child) {
-                  return ValueListenableBuilder(
-                    valueListenable: pcsctnnotifier.value == false
+                builder: (BuildContext context, bool value, Widget? child) {
+                  return ValueListenableBuilder<int>(
+                    valueListenable: !pcsctnnotifier.value
                         ? pickedctnmain
                         : pickedpcsmain,
-                    builder: (BuildContext context, int value, Widget child) {
-                      return ValueListenableBuilder(
-                        valueListenable: pcsctnnotifier.value == false
+                    builder: (BuildContext context, int value, Widget? child) {
+                      return ValueListenableBuilder<int>(
+                        valueListenable: !pcsctnnotifier.value
                             ? pickedctngood
                             : pickedpcsgood,
-                        builder: (BuildContext context, int value, Widget child) {
+                        builder: (BuildContext context, int value, Widget? child) {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
+                            children: <Widget>[
                               Container(
-                                // buttonupC (25:1598)
                                 margin: EdgeInsets.fromLTRB(
                                   69 * fem,
                                   0 * fem,
@@ -1285,21 +1158,20 @@ void initState() {
                                 width: double.infinity,
                                 height: 30 * fem,
                                 decoration: BoxDecoration(
-                                  color: Color(0xffd9d9d9),
+                                  color: const Color(0xffd9d9d9),
                                   borderRadius: BorderRadius.circular(8 * fem),
                                 ),
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
+                                  children: <Widget>[
                                     GestureDetector(
                                       child: Container(
-                                        // ctnbuttonA7r (25:1627)
                                         width: 54 * fem,
                                         height: double.infinity,
                                         decoration: BoxDecoration(
-                                          color: pcsctnnotifier.value == false
-                                              ? Color(0xffffffff)
-                                              : Color(0xffd9d9d9),
+                                          color: !pcsctnnotifier.value
+                                              ? const Color(0xffffffff)
+                                              : const Color(0xffd9d9d9),
                                           borderRadius: BorderRadius.circular(
                                             8 * fem,
                                           ),
@@ -1308,12 +1180,12 @@ void initState() {
                                           child: Text(
                                             'CTN',
                                             textAlign: TextAlign.center,
-                                            style: SafeGoogleFont(
+                                            style: safeGoogleFont(
                                               'Roboto',
                                               fontSize: 12 * ffem,
                                               fontWeight: FontWeight.w600,
                                               height: 1.1725 * ffem / fem,
-                                              color: Color(0xff000000),
+                                              color: const Color(0xff000000),
                                             ),
                                           ),
                                         ),
@@ -1325,7 +1197,6 @@ void initState() {
                                       },
                                     ),
                                     Container(
-                                      // pcsbuttonKN8 (25:1626)
                                       margin: EdgeInsets.fromLTRB(
                                         0 * fem,
                                         0 * fem,
@@ -1346,8 +1217,8 @@ void initState() {
                                           height: double.infinity,
                                           decoration: BoxDecoration(
                                             color: pcsctnnotifier.value
-                                                ? Color(0xffffffff)
-                                                : Color(0xffd9d9d9),
+                                                ? const Color(0xffffffff)
+                                                : const Color(0xffd9d9d9),
                                             borderRadius: BorderRadius.circular(
                                               8 * fem,
                                             ),
@@ -1356,12 +1227,12 @@ void initState() {
                                             child: Text(
                                               '${detail.uom}',
                                               textAlign: TextAlign.center,
-                                              style: SafeGoogleFont(
+                                              style: safeGoogleFont(
                                                 'Roboto',
                                                 fontSize: 12 * ffem,
                                                 fontWeight: FontWeight.w600,
                                                 height: 1.1725 * ffem / fem,
-                                                color: Color(0xff000000),
+                                                color: const Color(0xff000000),
                                               ),
                                             ),
                                           ),
@@ -1372,7 +1243,6 @@ void initState() {
                                 ),
                               ),
                               Container(
-                                // currentquantityFuz (25:1603)
                                 margin: EdgeInsets.fromLTRB(
                                   0 * fem,
                                   0 * fem,
@@ -1382,17 +1252,16 @@ void initState() {
                                 child: Text(
                                   'Current Quantity',
                                   textAlign: TextAlign.center,
-                                  style: SafeGoogleFont(
+                                  style: safeGoogleFont(
                                     'Roboto',
                                     fontSize: 16 * ffem,
                                     fontWeight: FontWeight.w600,
                                     height: 1.1725 * ffem / fem,
-                                    color: Color(0xff000000),
+                                    color: const Color(0xff000000),
                                   ),
                                 ),
                               ),
                               Container(
-                                // autogroupmbp6Zvg (Xy4pUzn7bAHLMDesSKMbP6)
                                 margin: EdgeInsets.fromLTRB(
                                   16 * fem,
                                   0 * fem,
@@ -1403,9 +1272,8 @@ void initState() {
                                 height: 69 * fem,
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
+                                  children: <Widget>[
                                     Container(
-                                      // group7Hbn (25:1613)
                                       margin: EdgeInsets.fromLTRB(
                                         0 * fem,
                                         0 * fem,
@@ -1422,9 +1290,8 @@ void initState() {
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.center,
-                                        children: [
+                                        children: <Widget>[
                                           Container(
-                                            // autogroupcdvg11z (Xy4pkzKU5GQQGV9WgncDvG)
                                             margin: EdgeInsets.fromLTRB(
                                               0 * fem,
                                               0 * fem,
@@ -1434,7 +1301,7 @@ void initState() {
                                             width: double.infinity,
                                             height: 46 * fem,
                                             decoration: BoxDecoration(
-                                              color: Color(0xffe0e0e0),
+                                              color: const Color(0xffe0e0e0),
                                               borderRadius:
                                                   BorderRadius.circular(
                                                     6 * fem,
@@ -1443,36 +1310,36 @@ void initState() {
                                             child: Center(
                                               child: Text(
                                                 pcsctnnotifier.value
-                                                    ? '${detail.stock_main}'
-                                                    : '${detail.stock_main_ctn}',
+                                                    ? '${detail.stockMain}'
+                                                    : '${detail.stockMainCtn}',
                                                 textAlign: TextAlign.center,
-                                                style: SafeGoogleFont(
+                                                style: safeGoogleFont(
                                                   'Roboto',
                                                   fontSize: 24 * ffem,
                                                   fontWeight: FontWeight.w600,
                                                   height: 1.1725 * ffem / fem,
-                                                  color: Color(0xff000000),
+                                                  color: const Color(
+                                                    0xff000000,
+                                                  ),
                                                 ),
                                               ),
                                             ),
                                           ),
                                           Text(
-                                            // goodstockURN (25:1616)
                                             'Main',
                                             textAlign: TextAlign.center,
-                                            style: SafeGoogleFont(
+                                            style: safeGoogleFont(
                                               'Roboto',
                                               fontSize: 16 * ffem,
                                               fontWeight: FontWeight.w600,
                                               height: 1.1725 * ffem / fem,
-                                              color: Color(0xff9a9a9a),
+                                              color: const Color(0xff9a9a9a),
                                             ),
                                           ),
                                         ],
                                       ),
                                     ),
                                     Container(
-                                      // group8Ddr (25:1605)
                                       width: 79 * fem,
                                       height: double.infinity,
                                       decoration: BoxDecoration(
@@ -1483,9 +1350,8 @@ void initState() {
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.center,
-                                        children: [
+                                        children: <Widget>[
                                           Container(
-                                            // autogroupovjnMVA (Xy4peABWodxRcddkzAoVjN)
                                             margin: EdgeInsets.fromLTRB(
                                               0 * fem,
                                               0 * fem,
@@ -1495,7 +1361,7 @@ void initState() {
                                             width: double.infinity,
                                             height: 46 * fem,
                                             decoration: BoxDecoration(
-                                              color: Color(0xffe0e0e0),
+                                              color: const Color(0xffe0e0e0),
                                               borderRadius:
                                                   BorderRadius.circular(
                                                     6 * fem,
@@ -1504,29 +1370,30 @@ void initState() {
                                             child: Center(
                                               child: Text(
                                                 pcsctnnotifier.value
-                                                    ? '${detail.stock_good}'
-                                                    : '${detail.stock_good_ctn}',
+                                                    ? '${detail.stockGood}'
+                                                    : '${detail.stockGoodCtn}',
                                                 textAlign: TextAlign.center,
-                                                style: SafeGoogleFont(
+                                                style: safeGoogleFont(
                                                   'Roboto',
                                                   fontSize: 24 * ffem,
                                                   fontWeight: FontWeight.w600,
                                                   height: 1.1725 * ffem / fem,
-                                                  color: Color(0xff000000),
+                                                  color: const Color(
+                                                    0xff000000,
+                                                  ),
                                                 ),
                                               ),
                                             ),
                                           ),
                                           Text(
-                                            // badstockEJ4 (25:1608)
                                             'Good',
                                             textAlign: TextAlign.center,
-                                            style: SafeGoogleFont(
+                                            style: safeGoogleFont(
                                               'Roboto',
                                               fontSize: 16 * ffem,
                                               fontWeight: FontWeight.w600,
                                               height: 1.1725 * ffem / fem,
-                                              color: Color(0xff9a9a9a),
+                                              color: const Color(0xff9a9a9a),
                                             ),
                                           ),
                                         ],
@@ -1536,7 +1403,6 @@ void initState() {
                                 ),
                               ),
                               Container(
-                                // actualquantityNfA (25:1604)
                                 margin: EdgeInsets.fromLTRB(
                                   0 * fem,
                                   0 * fem,
@@ -1546,17 +1412,16 @@ void initState() {
                                 child: Text(
                                   'Actual Quantity',
                                   textAlign: TextAlign.center,
-                                  style: SafeGoogleFont(
+                                  style: safeGoogleFont(
                                     'Roboto',
                                     fontSize: 16 * ffem,
                                     fontWeight: FontWeight.w600,
                                     height: 1.1725 * ffem / fem,
-                                    color: Color(0xff000000),
+                                    color: const Color(0xff000000),
                                   ),
                                 ),
                               ),
                               Container(
-                                // autogrouponhnJHv (Xy4prEfixBAQeVhZr4oNHN)
                                 margin: EdgeInsets.fromLTRB(
                                   0 * fem,
                                   0 * fem,
@@ -1567,10 +1432,9 @@ void initState() {
                                 height: 69 * fem,
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
+                                  children: <Widget>[
                                     GestureDetector(
                                       child: Container(
-                                        // group102ji (25:1617)
                                         margin: EdgeInsets.fromLTRB(
                                           0 * fem,
                                           0 * fem,
@@ -1582,9 +1446,8 @@ void initState() {
                                         child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.center,
-                                          children: [
+                                          children: <Widget>[
                                             Container(
-                                              // autogroupuse8ZUk (Xy4q1jPuJVJEHZTm66UsE8)
                                               margin: EdgeInsets.fromLTRB(
                                                 0 * fem,
                                                 0 * fem,
@@ -1600,9 +1463,11 @@ void initState() {
                                               width: double.infinity,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
-                                                  color: Color(0xffe0e0e0),
+                                                  color: const Color(
+                                                    0xffe0e0e0,
+                                                  ),
                                                 ),
-                                                color: Color(0xffffffff),
+                                                color: const Color(0xffffffff),
                                                 borderRadius:
                                                     BorderRadius.circular(
                                                       6 * fem,
@@ -1611,26 +1476,14 @@ void initState() {
                                               child: Row(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.center,
-                                                children: [
-                                                  // Container(
-                                                  //   // subtract2t8 (90:1664)
-                                                  //   margin: EdgeInsets.fromLTRB(
-                                                  //       0 * fem, 0 * fem, 12 * fem, 0 * fem),
-                                                  //   width: 28 * fem,
-                                                  //   height: 28 * fem,
-                                                  //   child: Image.asset(
-                                                  //     'assets/page-1/images/subtract-Woi.png',
-                                                  //     fit: BoxFit.contain,
-                                                  //   ),
-                                                  // ),
+                                                children: <Widget>[
                                                   Container(
-                                                    // kJL (25:1619)
                                                     margin: EdgeInsets.fromLTRB(
-                                                      detail.warehouse_stock_main
+                                                      detail.warehouseStockMain
                                                                       .toString()
                                                                       .length ==
                                                                   1 ||
-                                                              detail.warehouse_stock_main_ctn
+                                                              detail.warehouseStockMainCtn
                                                                       .toString()
                                                                       .length ==
                                                                   1
@@ -1646,7 +1499,7 @@ void initState() {
                                                           : '${pickedctnmain.value}',
                                                       textAlign:
                                                           TextAlign.center,
-                                                      style: SafeGoogleFont(
+                                                      style: safeGoogleFont(
                                                         'Roboto',
                                                         fontSize: 24 * ffem,
                                                         fontWeight:
@@ -1656,30 +1509,20 @@ void initState() {
                                                         decoration:
                                                             TextDecoration
                                                                 .underline,
-                                                        color: Color(
+                                                        color: const Color(
                                                           0xff000000,
                                                         ),
-                                                        decorationColor: Color(
-                                                          0xff000000,
-                                                        ),
+                                                        decorationColor:
+                                                            const Color(
+                                                              0xff000000,
+                                                            ),
                                                       ),
                                                     ),
                                                   ),
-                                                  // Container(
-                                                  //   // addGGg (90:1661)
-                                                  //   width: 32 * fem,
-                                                  //   height: 32 * fem,
-                                                  //   child: Image.asset(
-                                                  //     'assets/page-1/images/add-LDN.png',
-                                                  //     width: 32 * fem,
-                                                  //     height: 32 * fem,
-                                                  //   ),
-                                                  // ),
                                                 ],
                                               ),
                                             ),
                                             Container(
-                                              // goodstockzyN (25:1620)
                                               margin: EdgeInsets.fromLTRB(
                                                 0 * fem,
                                                 0 * fem,
@@ -1689,12 +1532,14 @@ void initState() {
                                               child: Text(
                                                 'Main',
                                                 textAlign: TextAlign.center,
-                                                style: SafeGoogleFont(
+                                                style: safeGoogleFont(
                                                   'Roboto',
                                                   fontSize: 16 * ffem,
                                                   fontWeight: FontWeight.w600,
                                                   height: 1.1725 * ffem / fem,
-                                                  color: Color(0xff9a9a9a),
+                                                  color: const Color(
+                                                    0xff9a9a9a,
+                                                  ),
                                                 ),
                                               ),
                                             ),
@@ -1702,23 +1547,20 @@ void initState() {
                                         ),
                                       ),
                                       onTap: () {
-                                        if (pcsctnnotifier.value == true) {
+                                        if (pcsctnnotifier.value) {
                                           _controllermain =
                                               TextEditingController(
                                                 text: pickedpcsmain.value
                                                     .toString(),
                                               );
-
                                           typeIndexmain = int.parse(
                                             _controllermain.text,
                                           );
-
                                           _controllergood =
                                               TextEditingController(
                                                 text: pickedpcsgood.value
                                                     .toString(),
                                               );
-
                                           typeIndexgood = int.parse(
                                             _controllergood.text,
                                           );
@@ -1728,22 +1570,19 @@ void initState() {
                                                 text: pickedctnmain.value
                                                     .toString(),
                                               );
-
                                           typeIndexmain = int.parse(
                                             _controllermain.text,
                                           );
-
                                           _controllergood =
                                               TextEditingController(
                                                 text: pickedctngood.value
                                                     .toString(),
                                               );
-
                                           typeIndexgood = int.parse(
                                             _controllergood.text,
                                           );
                                         }
-                                        if (pcsctnnotifier.value == false) {
+                                        if (!pcsctnnotifier.value) {
                                           tabs = 0;
                                         } else {
                                           tabs = 1;
@@ -1755,16 +1594,14 @@ void initState() {
                                       },
                                     ),
                                     GestureDetector(
-                                      child: Container(
-                                        // group11uqS (89:1631)
+                                      child: SizedBox(
                                         width: 117 * fem,
                                         height: double.infinity,
                                         child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.center,
-                                          children: [
+                                          children: <Widget>[
                                             Container(
-                                              // autogroupyxjgrkg (Xy4qFE1RGpxpQSbceEyXJg)
                                               margin: EdgeInsets.fromLTRB(
                                                 0 * fem,
                                                 0 * fem,
@@ -1780,9 +1617,11 @@ void initState() {
                                               width: double.infinity,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
-                                                  color: Color(0xffe0e0e0),
+                                                  color: const Color(
+                                                    0xffe0e0e0,
+                                                  ),
                                                 ),
-                                                color: Color(0xffffffff),
+                                                color: const Color(0xffffffff),
                                                 borderRadius:
                                                     BorderRadius.circular(
                                                       6 * fem,
@@ -1791,9 +1630,8 @@ void initState() {
                                               child: Row(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.center,
-                                                children: [
+                                                children: <Widget>[
                                                   Container(
-                                                    // s9z (89:1633)
                                                     margin: EdgeInsets.fromLTRB(
                                                       pickedpcsgood.value
                                                                       .toString()
@@ -1816,7 +1654,7 @@ void initState() {
                                                           : '${pickedctngood.value}',
                                                       textAlign:
                                                           TextAlign.center,
-                                                      style: SafeGoogleFont(
+                                                      style: safeGoogleFont(
                                                         'Roboto',
                                                         fontSize: 24 * ffem,
                                                         fontWeight:
@@ -1826,12 +1664,13 @@ void initState() {
                                                         decoration:
                                                             TextDecoration
                                                                 .underline,
-                                                        color: Color(
+                                                        color: const Color(
                                                           0xff000000,
                                                         ),
-                                                        decorationColor: Color(
-                                                          0xff000000,
-                                                        ),
+                                                        decorationColor:
+                                                            const Color(
+                                                              0xff000000,
+                                                            ),
                                                       ),
                                                     ),
                                                   ),
@@ -1839,7 +1678,6 @@ void initState() {
                                               ),
                                             ),
                                             Container(
-                                              // badstock7q2 (89:1634)
                                               margin: EdgeInsets.fromLTRB(
                                                 0 * fem,
                                                 0 * fem,
@@ -1849,12 +1687,14 @@ void initState() {
                                               child: Text(
                                                 'Good',
                                                 textAlign: TextAlign.center,
-                                                style: SafeGoogleFont(
+                                                style: safeGoogleFont(
                                                   'Roboto',
                                                   fontSize: 16 * ffem,
                                                   fontWeight: FontWeight.w600,
                                                   height: 1.1725 * ffem / fem,
-                                                  color: Color(0xff9a9a9a),
+                                                  color: const Color(
+                                                    0xff9a9a9a,
+                                                  ),
                                                 ),
                                               ),
                                             ),
@@ -1862,23 +1702,20 @@ void initState() {
                                         ),
                                       ),
                                       onTap: () {
-                                        if (pcsctnnotifier.value == true) {
+                                        if (pcsctnnotifier.value) {
                                           _controllermain =
                                               TextEditingController(
                                                 text: pickedpcsmain.value
                                                     .toString(),
                                               );
-
                                           typeIndexmain = int.parse(
                                             _controllermain.text,
                                           );
-
                                           _controllergood =
                                               TextEditingController(
                                                 text: pickedpcsgood.value
                                                     .toString(),
                                               );
-
                                           typeIndexgood = int.parse(
                                             _controllergood.text,
                                           );
@@ -1888,22 +1725,19 @@ void initState() {
                                                 text: pickedctnmain.value
                                                     .toString(),
                                               );
-
                                           typeIndexmain = int.parse(
                                             _controllermain.text,
                                           );
-
                                           _controllergood =
                                               TextEditingController(
                                                 text: pickedctngood.value
                                                     .toString(),
                                               );
-
                                           typeIndexgood = int.parse(
                                             _controllergood.text,
                                           );
                                         }
-                                        if (pcsctnnotifier.value == false) {
+                                        if (!pcsctnnotifier.value) {
                                           tabs = 0;
                                         } else {
                                           tabs = 1;
@@ -1918,7 +1752,6 @@ void initState() {
                                 ),
                               ),
                               Container(
-                                // autogroup1r9aScQ (Xy4qRDimKtnjbz2mRY1R9A)
                                 margin: EdgeInsets.fromLTRB(
                                   105 * fem,
                                   0 * fem,
@@ -1929,10 +1762,9 @@ void initState() {
                                 height: 40 * fem,
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
+                                  children: <Widget>[
                                     GestureDetector(
                                       child: Container(
-                                        // cancelbuttonZS8 (25:1585)
                                         margin: EdgeInsets.fromLTRB(
                                           0 * fem,
                                           0 * fem,
@@ -1948,15 +1780,14 @@ void initState() {
                                         height: double.infinity,
                                         decoration: BoxDecoration(
                                           border: Border.all(
-                                            color: Color(0xfff44236),
+                                            color: const Color(0xfff44236),
                                           ),
-                                          color: Color(0xffffffff),
+                                          color: const Color(0xffffffff),
                                           borderRadius: BorderRadius.circular(
                                             12 * fem,
                                           ),
                                         ),
                                         child: Center(
-                                          // cancelTXW (25:1587)
                                           child: SizedBox(
                                             width: 30 * fem,
                                             height: 30 * fem,
@@ -1974,7 +1805,6 @@ void initState() {
                                     ),
                                     GestureDetector(
                                       child: Container(
-                                        // savebuttonPAG (25:1590)
                                         padding: EdgeInsets.fromLTRB(
                                           24 * fem,
                                           5 * fem,
@@ -1983,20 +1813,19 @@ void initState() {
                                         ),
                                         height: double.infinity,
                                         decoration: BoxDecoration(
-                                          color: Color(0xff2cab0c),
+                                          color: const Color(0xff2cab0c),
                                           borderRadius: BorderRadius.circular(
                                             12 * fem,
                                           ),
-                                          boxShadow: [
+                                          boxShadow: <BoxShadow>[
                                             BoxShadow(
-                                              color: Color(0x3f000000),
+                                              color: const Color(0x3f000000),
                                               offset: Offset(0 * fem, 4 * fem),
                                               blurRadius: 2 * fem,
                                             ),
                                           ],
                                         ),
                                         child: Center(
-                                          // checkcircleHFe (25:1592)
                                           child: SizedBox(
                                             width: 30 * fem,
                                             height: 30 * fem,
@@ -2010,7 +1839,7 @@ void initState() {
                                       ),
                                       onTap: () async {
                                         _showMyDialogApprove(
-                                          pidVM.tolistpid.value[widget.index],
+                                          pidVM.tolistpid[widget.index],
                                           detail,
                                           "modal",
                                         );
@@ -2035,19 +1864,17 @@ void initState() {
   }
 
   Widget headerCard(StockDetail stockmodel) {
-    double baseWidth = 360;
-    double fem = MediaQuery.of(context).size.width / baseWidth;
-    double ffem = fem * 0.97;
+    final double baseWidth = 360;
+    final double fem = MediaQuery.of(context).size.width / baseWidth;
+    final double ffem = fem * 0.97;
 
     return Container(
       padding: EdgeInsets.fromLTRB(8 * fem, 8 * fem, 25 * fem, 7 * fem),
-      // width: double.infinity,
-      // height: 102 * fem,
-      margin: EdgeInsets.all(5),
+      margin: const EdgeInsets.all(5),
       decoration: BoxDecoration(
-        color: Color(0xffffffff),
+        color: const Color(0xffffffff),
         borderRadius: BorderRadius.circular(8 * fem),
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: Color(0x3f000000),
             offset: Offset(0 * fem, 4 * fem),
@@ -2056,16 +1883,15 @@ void initState() {
         ],
       ),
       child: ListTile(
-        // contentPadding: EdgeInsets.fromLTRB(7 * fem, 0 * fem, 9 * fem, 0 * fem),
         title: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
+          children: <Widget>[
             Expanded(
               flex: 2,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   Container(
                     margin: EdgeInsets.fromLTRB(
                       0 * fem,
@@ -2075,13 +1901,13 @@ void initState() {
                     ),
                     constraints: BoxConstraints(maxWidth: 160 * fem),
                     child: Text(
-                      '${stockmodel.item_name}',
+                      '${stockmodel.itemName}',
                       style: TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 14 * ffem,
                         fontWeight: FontWeight.w600,
                         height: 1.1725 * ffem / fem,
-                        color: Color(0xff2d2d2d),
+                        color: const Color(0xff2d2d2d),
                       ),
                     ),
                   ),
@@ -2093,13 +1919,13 @@ void initState() {
                       1 * fem,
                     ),
                     child: Text(
-                      'SKU: ${stockmodel.item_code}',
+                      'SKU: ${stockmodel.itemCode}',
                       style: TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 12 * ffem,
                         fontWeight: FontWeight.w600,
                         height: 1.1725 * ffem / fem,
-                        color: Color(0xff9a9a9a),
+                        color: const Color(0xff9a9a9a),
                       ),
                     ),
                   ),
@@ -2112,31 +1938,33 @@ void initState() {
                     ),
                     child: Text(
                       stockmodel.checked == 1
-                          ? 'Main: ${stockmodel.warehouse_stock_main}      Good: ${stockmodel.warehouse_stock_good} '
-                          : 'Main: ${stockmodel.stock_main}      Good: ${stockmodel.stock_good} ',
+                          ? 'Main: ${stockmodel.warehouseStockMain}      Good: ${stockmodel.warehouseStockGood} '
+                          : 'Main: ${stockmodel.stockMain}      Good: ${stockmodel.stockGood} ',
                       style: TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 12 * ffem,
                         fontWeight: FontWeight.w600,
                         height: 1.1725 * ffem / fem,
-                        color: Color(0xff9a9a9a),
+                        color: const Color(0xff9a9a9a),
                       ),
                     ),
                   ),
                   Text(
-                    stockmodel.formatted_updated_at.contains("Today")
-                        ? 'Last Stock Check: ${stockmodel.formatted_updated_at}'
-                        : stockmodel.formatted_updated_at.contains("Yesterday")
-                        ? 'Last Stock Check: ${stockmodel.formatted_updated_at}'
+                    (stockmodel.formattedUpdatedAt ?? '').contains("Today")
+                        ? 'Last Stock Check: ${stockmodel.formattedUpdatedAt ?? ''}'
+                        : (stockmodel.formattedUpdatedAt ?? '').contains(
+                            "Yesterday",
+                          )
+                        ? 'Last Stock Check: ${stockmodel.formattedUpdatedAt ?? ''}'
                         : globalVM.stringToDateWithTime(
-                            stockmodel.formatted_updated_at,
+                            stockmodel.formattedUpdatedAt ?? '',
                           ),
                     style: TextStyle(
                       fontFamily: 'Roboto',
                       fontSize: 12 * ffem,
                       fontWeight: FontWeight.w600,
                       height: 1.1725 * ffem / fem,
-                      color: Color(0xff9a9a9a),
+                      color: const Color(0xff9a9a9a),
                     ),
                   ),
                 ],
@@ -2144,20 +1972,20 @@ void initState() {
             ),
             stockmodel.checked != 0
                 ? Padding(
+                    padding: EdgeInsets.only(left: 20),
                     child: Image.asset(
                       'data/images/check-circle-TqJ.png',
                       width: 26 * fem,
                       height: 26 * fem,
                     ),
-                    padding: EdgeInsets.only(left: 20),
                   )
-                : SizedBox(),
+                : const SizedBox(),
             Expanded(
               flex: 1,
               child: stockmodel.checked == 0
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
+                      children: <Widget>[
                         Container(
                           margin: EdgeInsets.fromLTRB(
                             0 * fem,
@@ -2174,14 +2002,14 @@ void initState() {
                               fontSize: 15 * ffem,
                               fontWeight: FontWeight.w600,
                               height: 1.1725 * ffem / fem,
-                              color: Color(0xfff44236),
+                              color: const Color(0xfff44236),
                             ),
                           ),
                         ),
                         Text(
                           calculateStock(
-                            stockmodel.warehouse_stock_main,
-                            stockmodel.warehouse_stock_good,
+                            stockmodel.warehouseStockMain ?? 0,
+                            stockmodel.warehouseStockGood ?? 0,
                           ),
                           textAlign: TextAlign.center,
                           style: TextStyle(
@@ -2189,14 +2017,14 @@ void initState() {
                             fontSize: 20 * ffem,
                             fontWeight: FontWeight.w600,
                             height: 1.1725 * ffem / fem,
-                            color: Color(0xff2d2d2d),
+                            color: const Color(0xff2d2d2d),
                           ),
                         ),
                       ],
                     )
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
+                      children: <Widget>[
                         Container(
                           margin: EdgeInsets.fromLTRB(
                             0 * fem,
@@ -2213,14 +2041,14 @@ void initState() {
                               fontSize: 20 * ffem,
                               fontWeight: FontWeight.w600,
                               height: 1.1725 * ffem / fem,
-                              color: Color(0xfff44236),
+                              color: const Color(0xfff44236),
                             ),
                           ),
                         ),
                         Text(
                           calculateStock(
-                            stockmodel.warehouse_stock_main,
-                            stockmodel.warehouse_stock_good,
+                            stockmodel.warehouseStockMain ?? 0,
+                            stockmodel.warehouseStockGood ?? 0,
                           ),
                           textAlign: TextAlign.center,
                           style: TextStyle(
@@ -2228,13 +2056,14 @@ void initState() {
                             fontSize: 15 * ffem,
                             fontWeight: FontWeight.w600,
                             height: 1.1725 * ffem / fem,
-                            color: Color(0xff2d2d2d),
+                            color: const Color(0xff2d2d2d),
                           ),
                         ),
                       ],
                     ),
             ),
             Visibility(
+              visible: widget.flag != "history",
               child: Container(
                 margin: EdgeInsets.fromLTRB(
                   20 * fem,
@@ -2250,7 +2079,6 @@ void initState() {
                   height: 20 * fem,
                 ),
               ),
-              visible: widget.flag != "history",
             ),
           ],
         ),
@@ -2259,9 +2087,9 @@ void initState() {
   }
 
   Widget headerCard2(StockDetail stockmodel) {
-    double baseWidth = 360;
-    double fem = MediaQuery.of(context).size.width / baseWidth;
-    double ffem = fem * 0.97;
+    final double baseWidth = 360;
+    final double fem = MediaQuery.of(context).size.width / baseWidth;
+    final double ffem = fem * 0.97;
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
@@ -2272,9 +2100,9 @@ void initState() {
           width: double.infinity,
           height: 102 * fem,
           decoration: BoxDecoration(
-            color: Color(0xffffffff),
+            color: const Color(0xffffffff),
             borderRadius: BorderRadius.circular(8 * fem),
-            boxShadow: [
+            boxShadow: <BoxShadow>[
               BoxShadow(
                 color: Color(0x3f000000),
                 offset: Offset(0 * fem, 4 * fem),
@@ -2285,12 +2113,12 @@ void initState() {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Container(
+            children: <Widget>[
+              SizedBox(
                 height: double.infinity,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Container(
                       margin: EdgeInsets.fromLTRB(
                         0 * fem,
@@ -2300,13 +2128,13 @@ void initState() {
                       ),
                       constraints: BoxConstraints(maxWidth: 160 * fem),
                       child: Text(
-                        '${stockmodel.item_name}',
+                        '${stockmodel.itemName}',
                         style: TextStyle(
                           fontFamily: 'Roboto',
                           fontSize: 14 * ffem,
                           fontWeight: FontWeight.w600,
                           height: 1.1725 * ffem / fem,
-                          color: Color(0xff2d2d2d),
+                          color: const Color(0xff2d2d2d),
                         ),
                       ),
                     ),
@@ -2318,47 +2146,30 @@ void initState() {
                         1 * fem,
                       ),
                       child: Text(
-                        'SKU: ${stockmodel.item_code}',
+                        'SKU: ${stockmodel.itemCode}',
                         style: TextStyle(
                           fontFamily: 'Roboto',
                           fontSize: 12 * ffem,
                           fontWeight: FontWeight.w600,
                           height: 1.1725 * ffem / fem,
-                          color: Color(0xff9a9a9a),
+                          color: const Color(0xff9a9a9a),
                         ),
                       ),
                     ),
-
-                    // Container(
-                    //   margin: EdgeInsets.fromLTRB(
-                    //       0 * fem, 0 * fem, 0 * fem, 1 * fem),
-                    //   child: Text(
-                    //     stockmodel.checked == 1
-                    //         ? 'Main: ${stockmodel.warehouse_stock_main}      Good: ${stockmodel.warehouse_stock_good} '
-                    //         : 'Main: ${stockmodel.stock_main}      Good: ${stockmodel.stock_good} ',
-                    //     style: TextStyle(
-                    //       fontFamily: 'Roboto',
-                    //       fontSize: 12 * ffem,
-                    //       fontWeight: FontWeight.w600,
-                    //       height: 1.1725 * ffem / fem,
-                    //       color: Color(0xff9a9a9a),
-                    //     ),
-                    //   ),
-                    // ),
                     Text(
-                      stockmodel.formatted_updated_at.contains("Today")
-                          ? 'Last Stock Check: \n${stockmodel.formatted_updated_at}'
-                          : stockmodel.formatted_updated_at.contains(
+                      (stockmodel.formattedUpdatedAt ?? '').contains("Today")
+                          ? 'Last Stock Check: \n${stockmodel.formattedUpdatedAt ?? ''}'
+                          : (stockmodel.formattedUpdatedAt ?? '').contains(
                               "Yesterday",
                             )
-                          ? 'Last Stock Check: \n${stockmodel.formatted_updated_at}'
-                          : 'Last Stock Check: \n${globalVM.stringToDateWithTime(stockmodel.formatted_updated_at)}',
+                          ? 'Last Stock Check: \n${stockmodel.formattedUpdatedAt ?? ''}'
+                          : 'Last Stock Check: \n${globalVM.stringToDateWithTime(stockmodel.formattedUpdatedAt ?? '')}',
                       style: TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 12 * ffem,
                         fontWeight: FontWeight.w600,
                         height: 1.1725 * ffem / fem,
-                        color: Color(0xff9a9a9a),
+                        color: const Color(0xff9a9a9a),
                       ),
                     ),
                   ],
@@ -2366,20 +2177,20 @@ void initState() {
               ),
               stockmodel.checked != 0
                   ? Padding(
+                      padding: EdgeInsets.only(left: 20),
                       child: Image.asset(
                         'data/images/check-circle-TqJ.png',
                         width: 26 * fem,
                         height: 26 * fem,
                       ),
-                      padding: EdgeInsets.only(left: 20),
                     )
-                  : SizedBox(),
+                  : const SizedBox(),
               Expanded(
                 flex: 1,
                 child: stockmodel.checked == 0
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
+                        children: <Widget>[
                           Container(
                             margin: EdgeInsets.fromLTRB(
                               0 * fem,
@@ -2396,14 +2207,14 @@ void initState() {
                                 fontSize: 15 * ffem,
                                 fontWeight: FontWeight.w600,
                                 height: 1.1725 * ffem / fem,
-                                color: Color(0xfff44236),
+                                color: const Color(0xfff44236),
                               ),
                             ),
                           ),
                           Text(
                             calculateStock(
-                              stockmodel.warehouse_stock_main,
-                              stockmodel.warehouse_stock_good,
+                              stockmodel.warehouseStockMain ?? 0,
+                              stockmodel.warehouseStockGood ?? 0,
                             ),
                             textAlign: TextAlign.center,
                             style: TextStyle(
@@ -2411,14 +2222,14 @@ void initState() {
                               fontSize: 20 * ffem,
                               fontWeight: FontWeight.w600,
                               height: 1.1725 * ffem / fem,
-                              color: Color(0xff2d2d2d),
+                              color: const Color(0xff2d2d2d),
                             ),
                           ),
                         ],
                       )
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
+                        children: <Widget>[
                           Container(
                             margin: EdgeInsets.fromLTRB(
                               0 * fem,
@@ -2435,14 +2246,14 @@ void initState() {
                                 fontSize: 15 * ffem,
                                 fontWeight: FontWeight.w600,
                                 height: 1.1725 * ffem / fem,
-                                color: Color(0xfff44236),
+                                color: const Color(0xfff44236),
                               ),
                             ),
                           ),
                           Text(
                             calculateStock(
-                              stockmodel.warehouse_stock_main,
-                              stockmodel.warehouse_stock_good,
+                              stockmodel.warehouseStockMain ?? 0,
+                              stockmodel.warehouseStockGood ?? 0,
                             ),
                             textAlign: TextAlign.center,
                             style: TextStyle(
@@ -2450,13 +2261,16 @@ void initState() {
                               fontSize: 15 * ffem,
                               fontWeight: FontWeight.w600,
                               height: 1.1725 * ffem / fem,
-                              color: Color(0xff2d2d2d),
+                              color: const Color(0xff2d2d2d),
                             ),
                           ),
                         ],
                       ),
               ),
               Visibility(
+                visible:
+                    widget.flag != "history" &&
+                    pidVM.tolistpid[widget.index].isApprove != "Counted",
                 child: Container(
                   margin: EdgeInsets.fromLTRB(
                     20 * fem,
@@ -2472,9 +2286,6 @@ void initState() {
                     height: 20 * fem,
                   ),
                 ),
-                visible:
-                    widget.flag != "history" &&
-                    pidVM.tolistpid.value[widget.index].isapprove != "Counted",
               ),
             ],
           ),
@@ -2484,54 +2295,44 @@ void initState() {
   }
 
   Future<void> scanBarcode() async {
-    barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-      "#ff6666", // Color of the scan button
-      "Cancel", // Text of the cancel button
-      true, // Enable flash
-      ScanMode.BARCODE, // Type of barcode to scan
+    final scanResult = await FlutterBarcodeScanner.scanBarcode(
+      "#ff6666",
+      "Cancel",
+      true,
+      ScanMode.BARCODE,
     );
 
-    if (barcodeScanRes != null && barcodeScanRes != "") {
-      // pickedctn = TextEditingController();
-      // pickedpcs = TextEditingController();
+    if (!mounted) return;
 
+    if (scanResult != '-1' && scanResult.isNotEmpty) {
+      final barcode = scanResult;
       pcsctnnotifier.value = false;
 
-      pickedctnmain.value = pidVM.tolistpid.value[widget.index].detail
-          .where((element) => element.item_code.contains(barcodeScanRes))
-          .toList()[0]
-          .warehouse_stock_main_ctn;
-      pickedctngood.value = pidVM.tolistpid.value[widget.index].detail
-          .where((element) => element.item_code.contains(barcodeScanRes))
-          .toList()[0]
-          .warehouse_stock_good_ctn;
-      pickedpcsmain.value = pidVM.tolistpid.value[widget.index].detail
-          .where((element) => element.item_code.contains(barcodeScanRes))
-          .toList()[0]
-          .warehouse_stock_main;
-      pickedpcsgood.value = pidVM.tolistpid.value[widget.index].detail
-          .where((element) => element.item_code.contains(barcodeScanRes))
-          .toList()[0]
-          .warehouse_stock_good;
-      fromscan = false;
+      final details = (pidVM.tolistpid[widget.index].detail ?? [])
+          .where((element) => element.itemCode?.contains(barcode) ?? false)
+          .toList();
 
-      showMaterialModalBottomSheet(
-        context: context,
-        builder: (context) => modalBottomSheet(
-          pidVM.tolistpid.value[widget.index].detail
-              .where((element) => element.item_code.contains(barcodeScanRes))
-              .toList()[0],
-        ),
-      );
+      if (details.isNotEmpty) {
+        final data = details.first;
+
+        pickedctnmain.value = data.warehouseStockMainCtn ?? 0;
+        pickedctngood.value = data.warehouseStockGoodCtn ?? 0;
+        pickedpcsmain.value = data.warehouseStockMain ?? 0;
+        pickedpcsgood.value = data.warehouseStockGood ?? 0;
+        fromscan = false;
+
+        showModalBottomSheet(
+          context: context,
+          builder: (BuildContext context) => modalBottomSheet(data),
+        );
+      }
     }
-
-    // This will print the scanned barcode value
   }
 
   List<Widget> _buildActions() {
     return <Widget>[
       Row(
-        children: [
+        children: <Widget>[
           IconButton(icon: const Icon(Icons.qr_code), onPressed: scanBarcode),
           IconButton(
             icon: const Icon(Icons.refresh_outlined),
@@ -2539,21 +2340,16 @@ void initState() {
               _showMyDialogReject("refresh");
             },
           ),
-          // IconButton(
-          //   icon: const Icon(Icons.search),
-          //   onPressed: () {},
-          // ),
         ],
       ),
     ];
   }
 
-  List<Widget> _buildActionsHistory() {
+  List<Widget> buildActionsHistory() {
     return <Widget>[
       Row(
-        children: [
+        children: <Widget>[
           Switch(
-            // activeTrackColor: Colors.amber,
             value: light0,
             onChanged: (bool value) {
               setState(() {
@@ -2570,39 +2366,46 @@ void initState() {
     setState(() {
       searchQuery = newQuery;
       searchWF(newQuery);
-      // }
     });
   }
 
   void searchWF(String search) async {
-    pidVM.tolistpid.value[widget.index].detail.clear();
+    final detailList = pidVM.tolistpid[widget.index].detail ?? [];
+    detailList.clear();
 
-    var locallist2 = listdetailstock
-        .where((element) => element.item_code.toLowerCase().contains(search))
+    final locallist2 = listdetailstock
+        .where(
+          (element) => (element.itemCode?.toLowerCase() ?? '').contains(
+            search.toLowerCase(),
+          ),
+        )
         .toList();
 
-    var localsku = listdetailstock
-        .where((element) => element.item_name.toLowerCase().contains(search))
+    final localsku = listdetailstock
+        .where(
+          (element) => (element.itemName?.toLowerCase() ?? '').contains(
+            search.toLowerCase(),
+          ),
+        )
         .toList();
 
-    if (locallist2.length > 0) {
-      for (var i = 0; i < locallist2.length; i++) {
-        pidVM.tolistpid.value[widget.index].detail.add(locallist2[i]);
-      }
+    if (locallist2.isNotEmpty) {
+      detailList.addAll(locallist2);
     } else {
-      for (var i = 0; i < localsku.length; i++) {
-        pidVM.tolistpid.value[widget.index].detail.add(localsku[i]);
-      }
+      detailList.addAll(localsku);
     }
+
+    pidVM.tolistpid.refresh();
   }
 
   void _startSearch() {
     setState(() {
       listdetailstock.clear();
-      var locallist = pidVM.tolistpid.value[widget.index].detail;
-      for (var i = 0; i < locallist.length; i++) {
-        listdetailstock.add(locallist[i]);
-      }
+      final List<StockDetail> locallist =
+          pidVM.tolistpid[widget.index].detail ?? [];
+
+      listdetailstock.addAll(locallist);
+
       _isSearching = true;
     });
   }
@@ -2619,39 +2422,37 @@ void initState() {
     setState(() {
       _isSearching = false;
       _searchQuery.clear();
-      _isSearching = false;
 
-      pidVM.tolistpid.value[widget.index].detail.clear();
+      final detailList = pidVM.tolistpid[widget.index].detail ?? [];
 
-      for (var item in listdetailstock) {
-        pidVM.tolistpid.value[widget.index].detail.add(item);
-      }
-      // Get.to(InDetailPage(index));
+      detailList.clear();
+      detailList.addAll(listdetailstock);
+
+      pidVM.tolistpid.refresh();
     });
   }
 
   Widget _buildSearchField() {
-    print("masuk");
-    return new TextField(
+    return TextField(
       controller: _searchQuery,
       autofocus: true,
       decoration: const InputDecoration(
         hintText: 'Search...',
         border: InputBorder.none,
-        hintStyle: const TextStyle(color: Colors.white30),
+        hintStyle: TextStyle(color: Colors.white30),
       ),
       style: const TextStyle(color: Colors.white, fontSize: 16.0),
       onChanged: updateSearchQuery,
     );
   }
 
-  List<Widget> _buildActions2() {
+  List<Widget> buildActions2() {
     if (_isSearching) {
       return <Widget>[
-        new IconButton(
+        IconButton(
           icon: const Icon(Icons.clear),
           onPressed: () {
-            if (_searchQuery == null || _searchQuery.text.isEmpty) {
+            if (_searchQuery.text.isEmpty) {
               setState(() {
                 _stopSearching();
               });
@@ -2664,9 +2465,8 @@ void initState() {
     }
     return <Widget>[
       Row(
-        children: [
+        children: <Widget>[
           Switch(
-            // activeTrackColor: Colors.amber,
             value: light0,
             onChanged: (bool value) {
               setState(() {
@@ -2682,11 +2482,11 @@ void initState() {
             },
           ),
           Visibility(
+            visible: light0,
             child: IconButton(
               icon: const Icon(Icons.search),
               onPressed: _startSearch,
             ),
-            visible: light0,
           ),
         ],
       ),
@@ -2695,90 +2495,79 @@ void initState() {
 
   @override
   Widget build(BuildContext context) {
-    double baseWidth = 360;
-    double fem = MediaQuery.of(context).size.width / baseWidth;
-    double ffem = fem * 0.97;
-    return WillPopScope(
-      onWillPop: () => Future.value(false),
+    final double baseWidth = 360;
+    final double fem = MediaQuery.of(context).size.width / baseWidth;
+
+    return PopScope(
+      canPop: false,
       child: SafeArea(
         child: Scaffold(
           appBar: AppBar(
             actions:
                 widget.flag == "history" ||
-                    pidVM.tolistpid.value[widget.index].isapprove == "Counted"
+                    pidVM.tolistpid[widget.index].isApprove == "Counted"
                 ? null
                 : _buildActions(),
             automaticallyImplyLeading: false,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios),
+              icon: const Icon(Icons.arrow_back_ios),
               iconSize: 20.0,
               onPressed: () {
                 Get.back();
               },
             ),
-
-            // leading: IconButton(
-            //   onPressed: () {
-            //     Get.back();
-            //   },
-            //   icon: Icon(Icons.arrow_back, color: kWhiteColor),
-            // ),
             backgroundColor: Colors.red,
-
-            // leading: _isSearching ? const BackButton() : null,
             title: _isSearching
                 ? _buildSearchField()
-                : Container(
+                : SizedBox(
                     child: Align(
                       alignment: Alignment.centerLeft,
-                      child: TextWidget(
-                        text:
-                            "${pidVM.tolistpid.value[widget.index].location}" +
-                            " - " +
-                            "${pidVM.tolistpid.value[widget.index].location_name}",
-                        isBlueTxt: false,
+                      child: Text(
+                        "${pidVM.tolistpid[widget.index].location} - ${pidVM.tolistpid[widget.index].locationName}",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                        ),
                         maxLines: 2,
-                        size: 20,
-                        color: Colors.white,
                       ),
                     ),
                   ),
-
-            // actions: widget.listTrack != null ? null : _buildActions(),
             centerTitle: true,
           ),
-          backgroundColor: kWhiteColor,
+          backgroundColor: Colors.white,
           body: Container(
-            padding: EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
+              children: <Widget>[
                 Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
                   child: Wrap(
+                    spacing: 25,
                     children: listchoice
                         .map(
-                          (e) => ChoiceChip(
-                            padding: EdgeInsets.only(left: 15, right: 10),
+                          (ItemChoice e) => ChoiceChip(
+                            padding: const EdgeInsets.only(left: 15, right: 10),
                             labelStyle:
-                                (Theme.of(context).backgroundColor ==
+                                Theme.of(context).scaffoldBackgroundColor ==
                                     Colors.grey[100]
                                 ? (idPeriodSelected == e.id
-                                      ? TextStyle(color: Colors.white)
-                                      : TextStyle(color: Colors.white))
+                                      ? const TextStyle(color: Colors.white)
+                                      : const TextStyle(color: Colors.white))
                                 : (idPeriodSelected == e.id
-                                      ? TextStyle(color: Colors.white)
-                                      : TextStyle(color: Colors.white))),
+                                      ? const TextStyle(color: Colors.white)
+                                      : const TextStyle(color: Colors.white)),
                             backgroundColor:
-                                Theme.of(context).backgroundColor ==
+                                Theme.of(context).scaffoldBackgroundColor ==
                                     Colors.grey[100]
                                 ? Colors.grey
                                 : Colors.grey,
                             label: Text(e.label),
                             selected: idPeriodSelected == e.id,
-                            onSelected: (_) {
+                            onSelected: (bool _) {
                               setState(() {
                                 idPeriodSelected = e.id;
-                                int choice = idPeriodSelected - 1;
+                                final int choice = idPeriodSelected - 1;
                                 if (choice == 0) {
                                   GlobalVar.choicecategory = "AB";
                                 } else if (choice == 1) {
@@ -2786,53 +2575,39 @@ void initState() {
                                 } else {
                                   GlobalVar.choicecategory = "FZ";
                                 }
-                                // inVM.choicein.value =
-                                //     listchoice[choice].label;
-                                // inVM.onReady();
                               });
-                              // changeSelectedId('Period', e.id);
                             },
                             selectedColor: GlobalVar.choicecategory == "AB"
                                 ? Colors.red
                                 : GlobalVar.choicecategory == "FZ"
                                 ? Colors.blue
                                 : Colors.green,
-                            // ? Colors.white
-                            // : inVM.choicein.value == "FZ"
-                            //     ? Colors.blue
-                            //     : inVM.choicein.value ==
-                            //             "CH"
-                            //         ? Colors.green
-                            //         : Color(0xfff44236),
                             elevation: 10,
                           ),
                         )
                         .toList(),
-                    spacing: 25,
                   ),
-                  padding: EdgeInsets.only(bottom: 10),
                 ),
                 Visibility(
-                  child: SizedBox(height: 20),
                   visible:
-                      light0 == false &&
-                      pidVM.tolistpid.value[widget.index].detail
-                              .where(
-                                (element) => element.is_scanned.contains("Y"),
+                      !light0 &&
+                      (pidVM.tolistpid[widget.index].detail
+                              ?.where(
+                                (element) =>
+                                    element.isScanned?.contains("Y") ?? false,
                               )
-                              .toList()
-                              .length ==
-                          0,
+                              .isEmpty ??
+                          true),
+                  child: const SizedBox(height: 20),
                 ),
-                pidVM.tolistpid.value[widget.index].detail
-                            .where(
-                              (element) => element.is_scanned.contains("Y"),
+                (pidVM.tolistpid[widget.index].detail
+                            ?.where(
+                              (element) =>
+                                  element.isScanned?.contains("Y") ?? false,
                             )
-                            .toList()
-                            .length ==
-                        0
-                    ? Container(
-                        // undrawnodatarekwbl11XGU (23:995)
+                            .isEmpty ??
+                        true)
+                    ? SizedBox(
                         width: 252 * fem,
                         height: 225 * fem,
                         child: Image.asset(
@@ -2846,80 +2621,64 @@ void initState() {
                             controller: controller,
                             shrinkWrap: true,
                             scrollDirection: Axis.vertical,
-                            // gridDelegate:
-                            //     SliverGridDelegateWithFixedCrossAxisCount(
-                            //         crossAxisCount: 1),
-                            itemCount: pidVM
-                                .tolistpid
-                                .value[widget.index]
-                                .detail
-                                .where(
-                                  (element) =>
-                                      element.inventory_group.contains(
-                                        GlobalVar.choicecategory,
-                                      ) &&
-                                      element.is_scanned == "Y",
-                                )
-                                .toList()
-                                .length,
+                            itemCount:
+                                pidVM.tolistpid[widget.index].detail
+                                    ?.where(
+                                      (StockDetail element) =>
+                                          element.inventoryGroup?.contains(
+                                                GlobalVar.choicecategory,
+                                              ) ==
+                                              true &&
+                                          element.isScanned == "Y",
+                                    )
+                                    .toList()
+                                    .length ??
+                                0,
                             itemBuilder: (BuildContext context, int index) {
-                              return GestureDetector(
-                                child: headerCard2(
-                                  pidVM.tolistpid.value[widget.index].detail
-                                      .where(
-                                        (element) =>
-                                            element.inventory_group.contains(
-                                              GlobalVar.choicecategory,
-                                            ) &&
-                                            element.is_scanned == "Y",
+                              final filteredList =
+                                  pidVM.tolistpid[widget.index].detail
+                                      ?.where(
+                                        (StockDetail element) =>
+                                            element.inventoryGroup?.contains(
+                                                  GlobalVar.choicecategory,
+                                                ) ==
+                                                true &&
+                                            element.isScanned == "Y",
                                       )
-                                      .toList()[index],
-                                ),
+                                      .toList() ??
+                                  [];
+
+                              return GestureDetector(
+                                child: headerCard2(filteredList[index]),
                                 onTap: () async {
                                   if (widget.flag == "history" ||
-                                      pidVM
-                                              .tolistpid
-                                              .value[widget.index]
-                                              .isapprove ==
+                                      pidVM.tolistpid[widget.index].isApprove ==
                                           "Counted") {
+                                    return;
                                   } else {
-                                    if (ontap == true) {
+                                    if (ontap) {
                                       pcsctnnotifier.value = false;
 
-                                      pickedctnmain.value = pidVM
-                                          .tolistpid
-                                          .value[widget.index]
-                                          .detail[index]
-                                          .warehouse_stock_main_ctn;
-                                      pickedctngood.value = pidVM
-                                          .tolistpid
-                                          .value[widget.index]
-                                          .detail[index]
-                                          .warehouse_stock_good_ctn;
-                                      pickedpcsmain.value = pidVM
-                                          .tolistpid
-                                          .value[widget.index]
-                                          .detail[index]
-                                          .warehouse_stock_main;
-                                      pickedpcsgood.value = pidVM
-                                          .tolistpid
-                                          .value[widget.index]
-                                          .detail[index]
-                                          .warehouse_stock_good;
+                                      if (index < filteredList.length) {
+                                        final data = filteredList[index];
 
-                                      showMaterialModalBottomSheet(
-                                        context: context,
-                                        builder: (context) => modalBottomSheet(
-                                          pidVM
-                                              .tolistpid
-                                              .value[widget.index]
-                                              .detail[index],
-                                        ),
-                                      );
-                                    } else {}
+                                        pickedctnmain.value =
+                                            data.warehouseStockMainCtn ?? 0;
+                                        pickedctngood.value =
+                                            data.warehouseStockGoodCtn ?? 0;
+                                        pickedpcsmain.value =
+                                            data.warehouseStockMain ?? 0;
+                                        pickedpcsgood.value =
+                                            data.warehouseStockGood ?? 0;
+
+                                        showModalBottomSheet(
+                                          context: context,
+                                          builder: (BuildContext context) =>
+                                              modalBottomSheet(data),
+                                        );
+                                      }
+                                    }
                                   }
-
-                                  // Get.to(InDetailPage(index));
                                 },
                               );
                             },
@@ -2927,35 +2686,35 @@ void initState() {
                         );
                       }),
                 Visibility(
-                  child: SizedBox(height: 180),
                   visible:
                       light0 == false &&
-                      pidVM.tolistpid.value[widget.index].detail
-                              .where(
-                                (element) => element.is_scanned.contains("Y"),
-                              )
-                              .toList()
-                              .length ==
+                      (pidVM.tolistpid[widget.index].detail
+                                  ?.where(
+                                    (StockDetail element) =>
+                                        element.isScanned?.contains("Y") ==
+                                        true,
+                                  )
+                                  .toList()
+                                  .length ??
+                              0) ==
                           0,
+                  child: const SizedBox(height: 180),
                 ),
+
                 widget.flag == "history"
                     ? Container()
                     : Visibility(
                         visible:
-                            pidVM.tolistpid.value[widget.index].isapprove !=
+                            pidVM.tolistpid[widget.index].isApprove !=
                             "Counted",
                         child: Container(
-                          // frame11azo (I11:802;11:371)
-                          // margin: EdgeInsets.fromLTRB(
-                          //     7.5 * fem, 0 * fem, 7.5 * fem, 0 * fem),
-                          padding: EdgeInsets.only(left: 22),
+                          padding: const EdgeInsets.only(left: 22),
                           width: double.infinity,
                           height: 40 * fem,
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
+                            children: <Widget>[
                               Container(
-                                // cancelbuttonVM5 (I11:802;11:372)
                                 margin: EdgeInsets.fromLTRB(
                                   0 * fem,
                                   0 * fem,
@@ -2979,13 +2738,13 @@ void initState() {
                                     height: double.infinity,
                                     decoration: BoxDecoration(
                                       border: Border.all(
-                                        color: Color(0xfff44236),
+                                        color: const Color(0xfff44236),
                                       ),
-                                      color: Color(0xffffffff),
+                                      color: const Color(0xffffffff),
                                       borderRadius: BorderRadius.circular(
                                         12 * fem,
                                       ),
-                                      boxShadow: [
+                                      boxShadow: <BoxShadow>[
                                         BoxShadow(
                                           color: Color(0x3f000000),
                                           offset: Offset(0 * fem, 4 * fem),
@@ -2994,7 +2753,6 @@ void initState() {
                                       ],
                                     ),
                                     child: Center(
-                                      // cancelUyh (I11:802;11:374)
                                       child: SizedBox(
                                         width: 30 * fem,
                                         height: 30 * fem,
@@ -3009,18 +2767,21 @@ void initState() {
                                 ),
                               ),
                               TextButton(
-                                // yesbuttonPas (I11:802;11:377)
                                 onPressed: () {
-                                  setState(() {
-                                    _showMyDialogApprove(
-                                      pidVM.tolistpid.value[widget.index],
-                                      pidVM
-                                          .tolistpid
-                                          .value[widget.index]
-                                          .detail[0],
-                                      "all",
-                                    );
-                                  });
+                                  final pidList = pidVM.tolistpid;
+                                  if (pidList.length > widget.index &&
+                                      pidList[widget.index].detail != null &&
+                                      pidList[widget.index]
+                                          .detail!
+                                          .isNotEmpty) {
+                                    setState(() {
+                                      _showMyDialogApprove(
+                                        pidList[widget.index],
+                                        pidList[widget.index].detail![0],
+                                        "all",
+                                      );
+                                    });
+                                  }
                                 },
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.zero,
@@ -3034,11 +2795,11 @@ void initState() {
                                   ),
                                   height: double.infinity,
                                   decoration: BoxDecoration(
-                                    color: Color(0xff2cab0c),
+                                    color: const Color(0xff2cab0c),
                                     borderRadius: BorderRadius.circular(
                                       12 * fem,
                                     ),
-                                    boxShadow: [
+                                    boxShadow: <BoxShadow>[
                                       BoxShadow(
                                         color: Color(0x3f000000),
                                         offset: Offset(0 * fem, 4 * fem),
@@ -3047,7 +2808,6 @@ void initState() {
                                     ],
                                   ),
                                   child: Center(
-                                    // checkcircleqhm (I11:802;11:379)
                                     child: SizedBox(
                                       width: 30 * fem,
                                       height: 30 * fem,
@@ -3077,5 +2837,5 @@ class ItemChoice {
   final int id;
   final String label;
 
-  ItemChoice(this.id, this.label);
+  const ItemChoice(this.id, this.label);
 }

@@ -24,7 +24,6 @@ class _AppBottomNavigationBarState extends State<AppBottomNavigation> {
     const ProfilePage(key: PageStorageKey('Page2')),
   ];
 
-  /// Fungsi untuk menangani perubahan tab.
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
