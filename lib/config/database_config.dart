@@ -61,6 +61,34 @@ class DatabaseHelper {
     }
   }
 
+  Future<List<Category>> getCategories() async {
+    try {
+      final db = await database;
+      final res = await db.query("category");
+
+      // Ubah hasil query (List<Map<String, dynamic>>) menjadi List<Category>
+      return res.map((map) {
+        return Category(
+          category: map['category']?.toString(),
+          inventoryGroupId: map['inventory_group_id']?.toString(),
+          inventoryGroupName: map['inventory_group_name']?.toString(),
+        );
+      }).toList();
+    } catch (e) {
+      Logger().e("getCategories error: $e");
+      return [];
+    }
+  }
+
+  Future<void> clearCategories() async {
+    try {
+      final db = await database;
+      await db.delete("category");
+    } catch (e) {
+      Logger().e("clearCategories error: $e");
+    }
+  }
+
   Future<Database> initDB() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, "immobile.db");
@@ -97,16 +125,6 @@ class DatabaseHelper {
           }
         }
       },
-    );
-  }
-
-  Future<int> loginUser(Account account, String hasLogin) async {
-    final db = await database;
-    account.hasLogin = hasLogin;
-
-    return await db.rawInsert(
-      "INSERT INTO user (id,userid,name,email,hasLogin) VALUES (?,?,?,?,?)",
-      [1, account.userid, account.name, account.email, account.hasLogin],
     );
   }
 
@@ -148,23 +166,45 @@ class DatabaseHelper {
   }
 
   // Dalam class DatabaseHelper
+  Future<int> loginUser(Account account, String hasLogin) async {
+    final db = await database;
+
+    // Buat objek baru agar tidak melanggar aturan final
+    final updatedAccount = Account(
+      userid: account.userid,
+      name: account.name,
+      email: account.email,
+      status: account.status,
+      hasLogin: hasLogin,
+    );
+
+    return await db.rawInsert(
+      "INSERT INTO user (id, userid, name, email, hasLogin) VALUES (?,?,?,?,?)",
+      [
+        1,
+        updatedAccount.userid,
+        updatedAccount.name,
+        updatedAccount.email,
+        updatedAccount.hasLogin,
+      ],
+    );
+  }
+
   Future<List<Category>> getCategoryWithRole(String role) async {
     try {
       final db = await database;
-      var res = await db.rawQuery("SELECT * FROM category WHERE category = ?", [
-        role,
-      ]);
+      final res = await db.rawQuery(
+        "SELECT * FROM category WHERE category = ?",
+        [role],
+      );
 
-      return res
-          .map(
-            (map) => Category(
-              id: map['id'] as int?,
-              category: map['category'] as String? ?? '',
-              inventoryGroupId: map['inventory_group_id'] as String? ?? '',
-              inventoryGroupName: map['inventory_group_name'] as String? ?? '',
-            ),
-          )
-          .toList();
+      return res.map((map) {
+        return Category(
+          category: map['category']?.toString(),
+          inventoryGroupId: map['inventory_group_id']?.toString(),
+          inventoryGroupName: map['inventory_group_name']?.toString(),
+        );
+      }).toList();
     } catch (e) {
       Logger().e(e);
       return [];

@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 class RequestWorkflow {
-  final int? userid;
+  int? userid;
   final String? email;
   final String? password;
-  final String? role;
+  String? role;
   String? documentno;
   final String? group;
   final String? token;
