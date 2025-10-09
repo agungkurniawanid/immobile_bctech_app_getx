@@ -134,10 +134,8 @@ class HistoryViewModel extends GetxController {
 
       final List<HistoryModel> result = [];
 
-      // Process first category
       await _processCategoryDocuments(categoryList[0], result);
 
-      // Process additional categories if they exist
       if (categoryList.length > 1) {
         await _processCategoryDocuments(categoryList[1], result);
       }
@@ -146,7 +144,6 @@ class HistoryViewModel extends GetxController {
         await _processCategoryDocuments(categoryList[2], result);
       }
 
-      // Process 'ALL' category
       await _processAllCategoryDocuments(result);
 
       historyList.assignAll(result);
@@ -220,7 +217,6 @@ class HistoryViewModel extends GetxController {
     List<HistoryModel> result,
   ) {
     if (historyModel.ebeln != null) {
-      // IN document type
       if (result.any((element) => element.ebeln == historyModel.ebeln)) {
         result.removeWhere(
           (element) =>
@@ -229,7 +225,6 @@ class HistoryViewModel extends GetxController {
         result.add(historyModel);
       }
     } else if (historyModel.documentNo != null) {
-      // SR document type
       _handleStockRequirementDocument(historyModel, result);
     }
   }

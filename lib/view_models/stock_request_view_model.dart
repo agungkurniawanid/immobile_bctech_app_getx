@@ -34,10 +34,8 @@ class StockRequestVM extends GetxController {
   final Rx<dynamic> pdfFile = Rx<dynamic>(null);
   final Rx<dynamic> pdfBytes = Rx<dynamic>(null);
   final RxBool tutorialRecent = true.obs;
-
   final ValueNotifier<bool> forButton = ValueNotifier(false);
 
-  // Non-reactive
   List<OutModel> outModelLocal = [];
   List<OutModel> outModelLocalOut = [];
   List<OutModel> originalSROut = [];
@@ -54,7 +52,6 @@ class StockRequestVM extends GetxController {
 
   bool validationButtonRefresh = false;
 
-  // === Lifecycle ===
   @override
   void onReady() {
     super.onReady();
@@ -65,7 +62,6 @@ class StockRequestVM extends GetxController {
     srButton.bindStream(validationForButton());
   }
 
-  // === FIREBASE COLLECTION NAME ===
   Future<String> _fetchCollectionName() async {
     final snapshot = await FirebaseFirestore.instance
         .collection('validation')
@@ -83,7 +79,6 @@ class StockRequestVM extends GetxController {
     collectionName = await _fetchCollectionName();
   }
 
-  // === STREAM BUTTON VALIDATION ===
   Stream<bool> validationForButton() {
     return FirebaseFirestore.instance
         .collection('validation')
@@ -99,7 +94,6 @@ class StockRequestVM extends GetxController {
         });
   }
 
-  // === STREAM LIST SR ===
   Stream<List<OutModel>> listSR() async* {
     await _initCollection();
     isLoading.value = true;
@@ -121,8 +115,6 @@ class StockRequestVM extends GetxController {
 
           for (final doc in snapshot.docs) {
             final outModel = OutModel.fromDocumentSnapshot(doc);
-
-            // Perbaikan: gunakan properti yang sesuai dengan OutModel
             outModel.flag =
                 outModel.detail?.any((d) => d.updatedAt.isNotEmpty) ?? false
                 ? 'Y'
@@ -139,7 +131,6 @@ class StockRequestVM extends GetxController {
             }
           }
 
-          // Filtering & sorting
           if (GlobalVar.choicecategory == 'ALL') {
             outModelLocalOut.sort(
               (a, b) => (b.flag ?? '').compareTo(a.flag ?? ''),
@@ -173,7 +164,6 @@ class StockRequestVM extends GetxController {
         });
   }
 
-  // === APPROVE SR ===
   Future<dynamic> approveSR(OutModel outModel, String group) async {
     try {
       // Perbaikan: sesuaikan dengan model data yang diperlukan
@@ -211,7 +201,6 @@ class StockRequestVM extends GetxController {
     }
   }
 
-  // === FIREBASE UPDATE ===
   Future<bool> approveOut(
     OutModel outModel,
     List<Map<String, dynamic>> tdata,
@@ -220,10 +209,10 @@ class StockRequestVM extends GetxController {
       await _initCollection();
       await FirebaseFirestore.instance
           .collection(collectionName)
-          .doc(outModel.documentNo) // Perbaikan: documentNo bukan documentno
+          .doc(outModel.documentNo)
           .update({
             'details': tdata,
-            'sync': outModel.isSync, // Perbaikan: isSync bukan issync
+            'sync': outModel.isSync,
             'updated': outModel.updated,
             'updatedby': globalVM.username.value,
           });
@@ -239,12 +228,8 @@ class StockRequestVM extends GetxController {
       await _initCollection();
       await FirebaseFirestore.instance
           .collection(collectionName)
-          .doc(outModel.documentNo) // Perbaikan: documentNo bukan documentno
-          .update({
-            'isapprove':
-                outModel.isApprove, // Perbaikan: isApprove bukan isapprove
-            'sync': outModel.isSync, // Perbaikan: isSync bukan issync
-          });
+          .doc(outModel.documentNo)
+          .update({'isapprove': outModel.isApprove, 'sync': outModel.isSync});
       return true;
     } catch (e) {
       debugPrint('flagAfterSendSAP error: $e');
@@ -295,7 +280,6 @@ class StockRequestVM extends GetxController {
     }
   }
 
-  // === FETCH DATA FROM API ===
   Future<bool> getStockRequest() async {
     try {
       final client = HttpClient()
@@ -327,7 +311,6 @@ class StockRequestVM extends GetxController {
     }
   }
 
-  // === HELPER METHOD UNTUK JSON CONVERSION ===
   String toJsonApproveSR(Map<String, dynamic> data) {
     return jsonEncode(data);
   }

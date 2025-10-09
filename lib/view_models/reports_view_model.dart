@@ -10,33 +10,24 @@ import 'package:intl/intl.dart';
 class ReportsVM extends GetxController {
   final Config config = Config();
   final GlobalVM globalvm = Get.find<GlobalVM>();
-
-  // Rx Lists
   final tolisthistory = <ReportsModel>[].obs;
   final tolisthistoryin = <ReportsModel>[].obs;
   final tolisthistoryout = <ReportsModel>[].obs;
   final tolisthistorysc = <ReportsModel>[].obs;
   final tolisthistoryfortotal = <ReportsModel>[].obs;
-
   final stocklist = Rx<List<ReportsModel>>(<ReportsModel>[]);
-
-  // State variables
   final isLoading = true.obs;
   final isLoadingPDF = true.obs;
   final isSearch = true.obs;
   final isIconSearch = true.obs;
   final isIconSearchint = 0.obs;
   final tutorialRecent = true.obs;
-
-  // Date variables
   final datetimenow = DateTime.now().obs;
   final firstdate = DateTime.now().obs;
   final lastdate = DateTime.now().obs;
   final choicedate = ''.obs;
   final choice = ''.obs;
   final choicechip = ''.obs;
-
-  // File variables
   final pdfFile = Rx<dynamic>(null);
   final pdfBytes = Rx<dynamic>(null);
   final pdfDir = ''.obs;
@@ -78,11 +69,8 @@ class ReportsVM extends GetxController {
     QuerySnapshot query,
   ) async {
     final result = <ReportsModel>[];
-
-    // Process AB collection
     await _processCollection(query, result, filterPallet: true);
 
-    // Process CH collection
     final query2 = await FirebaseFirestore.instance
         .collection('HISTORY')
         .doc('CH')
@@ -90,7 +78,6 @@ class ReportsVM extends GetxController {
         .get();
     await _processCollection(query2, result, filterPallet: true);
 
-    // Process FZ collection
     final query3 = await FirebaseFirestore.instance
         .collection('HISTORY')
         .doc('FZ')
@@ -98,7 +85,6 @@ class ReportsVM extends GetxController {
         .get();
     await _processCollection(query3, result, filterPallet: true);
 
-    // Process ALL collection for updates
     final query4 = await FirebaseFirestore.instance
         .collection('HISTORY')
         .doc('ALL')
@@ -122,10 +108,8 @@ class ReportsVM extends GetxController {
   Future<List<ReportsModel>> _processAllData(QuerySnapshot query) async {
     final result = <ReportsModel>[];
 
-    // Process AB collection
     await _processCollection(query, result);
 
-    // Process CH collection
     final query2 = await FirebaseFirestore.instance
         .collection('HISTORY')
         .doc('CH')
@@ -133,7 +117,6 @@ class ReportsVM extends GetxController {
         .get();
     await _processCollection(query2, result);
 
-    // Process FZ collection
     final query3 = await FirebaseFirestore.instance
         .collection('HISTORY')
         .doc('FZ')
@@ -141,7 +124,6 @@ class ReportsVM extends GetxController {
         .get();
     await _processCollection(query3, result);
 
-    // Process ALL collection for updates
     final query4 = await FirebaseFirestore.instance
         .collection('HISTORY')
         .doc('ALL')
@@ -172,7 +154,6 @@ class ReportsVM extends GetxController {
       await _processCollection(query, result);
     }
 
-    // Process ALL collection for updates
     final query2 = await FirebaseFirestore.instance
         .collection('HISTORY')
         .doc('ALL')
@@ -180,7 +161,6 @@ class ReportsVM extends GetxController {
         .get();
     await _processSpecificAllCollection(query2, result);
 
-    // Process SR collection
     final query3 = await FirebaseFirestore.instance
         .collection('SR')
         .where('createdat', isGreaterThanOrEqualTo: choicedate.value)
@@ -334,9 +314,7 @@ class ReportsVM extends GetxController {
     } else if (newModel.detail?.any(
           (element) => element.inventoryGroup == choice.value,
         ) ??
-        false) {
-      // your code here
-    }
+        false) {}
     {
       result.removeWhere(
         (element) => element.documentNo == newModel.documentNo,

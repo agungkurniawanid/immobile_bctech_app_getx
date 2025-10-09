@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Light Color Scheme
 const Color kBlueColor = Color(0xFF2196F3);
 const Color kWhiteColor = Color(0xFFFFFFFF);
 const Color kBlackColor = Color(0xFF000000);
@@ -13,36 +12,29 @@ const Color kRedColor = Color(0xFFF44336);
 const Color kRedAccentColor = Color(0xFFFF5252);
 const Color kAmberColor = Color(0xFFFDA50F);
 
-// Dark Color Scheme
 const Color kDarkBlueColor = Color(0xFF64B5F6);
 const Color kDarkSurfaceColor = Color(0xFF1E1E1E);
 const Color kDarkGreyColor = Color(0xFF616161);
 
-// Semantic Colors
 const Color kSuccessColor = kGreenColor;
 const Color kErrorColor = kRedColor;
 const Color kWarningColor = kAmberColor;
 const Color kInfoColor = kBlueColor;
 
-// Text Colors
 const Color kPrimaryTextColor = kBlackColor;
 const Color kSecondaryTextColor = kBlack45Color;
 const Color kInverseTextColor = kWhiteColor;
 
-// Background Colors
 const Color kPrimaryBackgroundColor = kWhiteColor;
 const Color kSecondaryBackgroundColor = kGrey100Color;
 const Color kScaffoldBackgroundColor = kWhiteColor;
 
-// Border Colors
 const Color kBorderColor = Color(0xFFE0E0E0);
 const Color kDividerColor = Color(0xFFEEEEEE);
 
-// Strings
 const String kSetPinTxt =
     "Looks like you haven't set a pin for your account. Please set it first to continue";
 
-// Text Themes
 class AppTextTheme {
   static const TextStyle displayLarge = TextStyle(
     fontSize: 32,
@@ -111,7 +103,6 @@ class AppTextTheme {
   );
 }
 
-// App Theme Data
 class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
@@ -129,12 +120,10 @@ class AppTheme {
         primary: kBlueColor,
         secondary: kAmberColor,
         surface: kWhiteColor,
-        background: kScaffoldBackgroundColor,
         error: kErrorColor,
         onPrimary: kWhiteColor,
         onSecondary: kBlackColor,
         onSurface: kBlackColor,
-        onBackground: kBlackColor,
         onError: kWhiteColor,
       ),
       textTheme: const TextTheme(
@@ -191,12 +180,10 @@ class AppTheme {
         primary: kDarkBlueColor,
         secondary: kAmberColor,
         surface: kDarkSurfaceColor,
-        background: kBlackThemeColor,
         error: kRedAccentColor,
         onPrimary: kWhiteColor,
         onSecondary: kWhiteColor,
         onSurface: kWhiteColor,
-        onBackground: kWhiteColor,
         onError: kWhiteColor,
       ),
     );

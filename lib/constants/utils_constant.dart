@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
 import 'package:intl/intl.dart';
 
-/// Custom scroll behavior that supports both touch and mouse drag devices
 class CustomScrollBehavior extends MaterialScrollBehavior {
   @override
   Set<PointerDeviceKind> get dragDevices => {
@@ -39,8 +38,6 @@ class CustomScrollBehavior extends MaterialScrollBehavior {
   }
 }
 
-/// Safe font loader with fallback to default font
-/// Returns a TextStyle using Google Fonts with proper error handling
 TextStyle safeGoogleFont(
   String fontFamily, {
   TextStyle? textStyle,
@@ -58,7 +55,6 @@ TextStyle safeGoogleFont(
   Paint? background,
   List<Shadow>? shadows,
   List<FontFeature>? fontFeatures,
-  // Dihapus: List<FontVariation>? fontVariations, // Parameter ini tidak tersedia di Google Fonts
   TextDecoration? decoration,
   Color? decorationColor,
   TextDecorationStyle? decorationStyle,
@@ -82,7 +78,6 @@ TextStyle safeGoogleFont(
       background: background,
       shadows: shadows,
       fontFeatures: fontFeatures,
-      // Dihapus: fontVariations: fontVariations, // Parameter ini tidak tersedia
       decoration: decoration,
       decorationColor: decorationColor,
       decorationStyle: decorationStyle,
@@ -92,7 +87,6 @@ TextStyle safeGoogleFont(
     debugPrint('Error loading font $fontFamily: $exception');
     debugPrint('Stack trace: $stackTrace');
 
-    // Fallback to Roboto with proper null safety
     return GoogleFonts.roboto(
       textStyle: textStyle,
       color: color,
@@ -109,7 +103,6 @@ TextStyle safeGoogleFont(
       background: background,
       shadows: shadows,
       fontFeatures: fontFeatures,
-      // Dihapus: fontVariations: fontVariations, // Parameter ini tidak tersedia
       decoration: decoration,
       decorationColor: decorationColor,
       decorationStyle: decorationStyle,
@@ -118,9 +111,7 @@ TextStyle safeGoogleFont(
   }
 }
 
-/// Predefined text styles for consistent typography across the app
 class AppTextStyles {
-  // Display
   static TextStyle displayLarge(BuildContext context) => safeGoogleFont(
     'Roboto',
     fontSize: 32.0,
@@ -137,7 +128,6 @@ class AppTextStyles {
     color: Theme.of(context).colorScheme.onSurface,
   );
 
-  // Headline
   static TextStyle headlineLarge(BuildContext context) => safeGoogleFont(
     'Roboto',
     fontSize: 24.0,
@@ -154,7 +144,6 @@ class AppTextStyles {
     color: Theme.of(context).colorScheme.onSurface,
   );
 
-  // Title
   static TextStyle titleLarge(BuildContext context) => safeGoogleFont(
     'Roboto',
     fontSize: 18.0,
@@ -171,7 +160,6 @@ class AppTextStyles {
     color: Theme.of(context).colorScheme.onSurface,
   );
 
-  // Body
   static TextStyle bodyLarge(BuildContext context) => safeGoogleFont(
     'Roboto',
     fontSize: 16.0,
@@ -196,7 +184,6 @@ class AppTextStyles {
     color: Theme.of(context).colorScheme.onSurfaceVariant,
   );
 
-  // Label
   static TextStyle labelLarge(BuildContext context) => safeGoogleFont(
     'Roboto',
     fontSize: 14.0,
@@ -222,9 +209,7 @@ class AppTextStyles {
   );
 }
 
-/// Utility functions for common operations
 class AppUtils {
-  /// Hides the soft keyboard
   static void hideKeyboard(BuildContext context) {
     final currentFocus = FocusScope.of(context);
     if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
@@ -232,7 +217,6 @@ class AppUtils {
     }
   }
 
-  /// Copies text to clipboard with feedback
   static Future<void> copyToClipboard({
     required BuildContext context,
     required String text,
@@ -250,13 +234,11 @@ class AppUtils {
     }
   }
 
-  /// Formats a number with thousand separators
   static String formatNumber(num value, {String locale = 'en_US'}) {
     final formatter = NumberFormat('#,###', locale);
     return formatter.format(value);
   }
 
-  /// Returns a human-readable file size
   static String formatFileSize(int bytes, {int decimals = 2}) {
     if (bytes <= 0) return '0 B';
     const suffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
@@ -264,59 +246,35 @@ class AppUtils {
     return '${(bytes / math.pow(1024, i)).toStringAsFixed(decimals)} ${suffixes[i]}';
   }
 
-  /// Checks if the current platform is dark mode
   static bool isDarkMode(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark;
   }
 
-  /// Gets the appropriate color based on brightness
   static Color getAdaptiveColor(BuildContext context) {
     return isDarkMode(context) ? Colors.white : Colors.black;
   }
 }
 
-/// Extension methods for BuildContext
 extension ContextExtensions on BuildContext {
-  /// Returns the text theme from current theme
   TextTheme get textTheme => Theme.of(this).textTheme;
-
-  /// Returns the color scheme from current theme
   ColorScheme get colorScheme => Theme.of(this).colorScheme;
-
-  /// Returns the media query data
   MediaQueryData get mediaQuery => MediaQuery.of(this);
-
-  /// Returns the screen size
   Size get screenSize => mediaQuery.size;
-
-  /// Returns the screen width
   double get screenWidth => screenSize.width;
-
-  /// Returns the screen height
   double get screenHeight => screenSize.height;
-
-  /// Returns true if dark mode is enabled
   bool get isDarkMode => Theme.of(this).brightness == Brightness.dark;
-
-  /// Hides the soft keyboard
   void hideKeyboard() => AppUtils.hideKeyboard(this);
 }
 
-/// Extension methods for String
 extension StringExtensions on String {
-  /// Returns true if the string is null or empty
   bool get isNullOrEmpty => isEmpty;
-
-  /// Returns true if the string is not null and not empty
   bool get isNotNullOrEmpty => !isNullOrEmpty;
 
-  /// Capitalizes the first letter of the string
   String get capitalize {
     if (isEmpty) return this;
     return '${this[0].toUpperCase()}${substring(1).toLowerCase()}';
   }
 
-  /// Returns a truncated string with ellipsis if longer than maxLength
   String truncate(int maxLength, {bool showEllipsis = true}) {
     if (length <= maxLength) return this;
     return showEllipsis

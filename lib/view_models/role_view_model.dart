@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:immobile_app_fixed/models/role_model.dart';
 import 'package:immobile_app_fixed/view_models/global_view_model.dart';
+import 'package:logger/logger.dart';
 
 class Rolevm extends GetxController {
   final GlobalVM globalvm = Get.find();
@@ -27,7 +28,7 @@ class Rolevm extends GetxController {
             return returnstock;
           });
     } catch (e) {
-      print("Error in listrole: $e");
+      Logger().e("Error in listrole: $e");
       isLoading.value = false;
       return Stream.value(Role.empty());
     }

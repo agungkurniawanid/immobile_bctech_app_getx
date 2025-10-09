@@ -55,7 +55,6 @@ class StockDetail {
     this.stockTotal,
   });
 
-  /// ✅ Clone constructor (modern style)
   StockDetail.clone(StockDetail data)
     : checked = data.checked ?? 0,
       formattedUpdatedAt = data.formattedUpdatedAt ?? '',
@@ -83,7 +82,6 @@ class StockDetail {
       uom = data.uom ?? '',
       stockTotal = data.stockTotal ?? 0;
 
-  /// ✅ Convert to Map (for Firestore or API)
   Map<String, dynamic> toMap() {
     return {
       'checked': checked,
@@ -114,7 +112,6 @@ class StockDetail {
     };
   }
 
-  /// ✅ Factory from JSON
   factory StockDetail.fromJson(Map<String, dynamic> data) {
     return StockDetail(
       checked: data['checked'] ?? 0,
@@ -145,7 +142,6 @@ class StockDetail {
     );
   }
 
-  /// ✅ toString untuk debugging
   @override
   String toString() {
     return jsonEncode(toMap());

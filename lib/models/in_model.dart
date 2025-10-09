@@ -61,7 +61,6 @@ class InModel implements ImmobileItem {
     return "";
   }
 
-  /// Clone constructor
   factory InModel.clone(InModel data) {
     return InModel(
       aedat: data.aedat,
@@ -90,7 +89,6 @@ class InModel implements ImmobileItem {
     );
   }
 
-  /// Factory untuk konversi dari JSON
   factory InModel.fromJson(Map<String, dynamic> json) {
     return InModel(
       aedat: json['aedat'],
@@ -121,7 +119,6 @@ class InModel implements ImmobileItem {
     );
   }
 
-  /// Factory untuk Firestore document
   factory InModel.fromDocumentSnapshot(DocumentSnapshot documentSnapshot) {
     final data = documentSnapshot.data() as Map<String, dynamic>?;
 
@@ -155,7 +152,6 @@ class InModel implements ImmobileItem {
     );
   }
 
-  /// Convert model to JSON
   Map<String, dynamic> toJson() {
     return {
       'aedat': aedat,
@@ -184,6 +180,5 @@ class InModel implements ImmobileItem {
     };
   }
 
-  /// Convert model ke Map (untuk Firestore)
   Map<String, dynamic> toMap() => toJson();
 }

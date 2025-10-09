@@ -9,6 +9,7 @@ import 'package:immobile_app_fixed/models/stock_check_model.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:logger/logger.dart';
 
 class StockCheckVM extends GetxController {
   Config config = Config();
@@ -39,7 +40,6 @@ class StockCheckVM extends GetxController {
 
   @override
   void onReady() async {
-    // username = await DatabaseHelper.db.getUser();
     stocklist.bindStream(listStock());
   }
 
@@ -61,28 +61,20 @@ class StockCheckVM extends GetxController {
             toliststockhistory.value = [];
 
             for (var stock in query.docs) {
-              // PERBAIKAN: Gunakan positional parameter, bukan named parameter
               final returnstock = StockModel.fromDocumentSnapshot(stock);
 
               if (returnstock.isApprove == "N") {
                 stockModellocal.add(returnstock);
                 stockModellocalout.add(returnstock);
               }
-
-              // Filter untuk history berdasarkan username (jika diperlukan)
-              // if (returnstock.detail?.where((element) => element.approveName == username).toList().length > 0) {
-              //   stockforhistory.add(returnstock);
-              // }
             }
 
-            // Sort detail by stock_total descending
             for (var stock in stockModellocalout) {
               stock.detail?.sort(
                 (a, b) => (b.stockTotal ?? 0).compareTo(a.stockTotal ?? 0),
               );
             }
 
-            // Sort stock by updated_at descending
             stockModellocalout.sort(
               (a, b) => (b.updatedAt ?? '').compareTo(a.updatedAt ?? ''),
             );
@@ -94,7 +86,7 @@ class StockCheckVM extends GetxController {
             return toliststock;
           });
     } catch (e) {
-      print('Error in listStock: $e');
+      Logger().e('Error in listStock: $e');
       isLoading.value = false;
       return Stream.value([]);
     }
@@ -139,7 +131,7 @@ class StockCheckVM extends GetxController {
             'detail': tdata,
           });
     } catch (e) {
-      print('Error in sendtohistory: $e');
+      Logger().e('Error in sendtohistory: $e');
     }
   }
 
@@ -198,11 +190,11 @@ class StockCheckVM extends GetxController {
       }
     } on TimeoutException catch (e) {
       EasyLoading.dismiss();
-      print('Timeout in refreshstock: $e');
+      Logger().e('Timeout in refreshstock: $e');
       return "Timeout Error";
     } catch (e) {
       EasyLoading.dismiss();
-      print('Error in refreshstock: $e');
+      Logger().e('Error in refreshstock: $e');
       return false;
     }
   }
@@ -222,7 +214,7 @@ class StockCheckVM extends GetxController {
         "updatedby": stockmodel.updatedby,
       });
     } catch (e) {
-      print('Error in approveall: $e');
+      Logger().e('Error in approveall: $e');
     }
   }
 
@@ -257,7 +249,7 @@ class StockCheckVM extends GetxController {
             'detail': tdata,
           });
     } catch (e) {
-      print('Error in approvestock: $e');
+      Logger().e('Error in approvestock: $e');
     }
   }
 
@@ -267,7 +259,7 @@ class StockCheckVM extends GetxController {
       final dateTime = DateTime.parse(date);
       return format.format(dateTime);
     } catch (e) {
-      print('Error in dateToString: $e');
+      Logger().e('Error in dateToString: $e');
       return date;
     }
   }

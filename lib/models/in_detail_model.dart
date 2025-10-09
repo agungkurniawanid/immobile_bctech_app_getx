@@ -65,7 +65,6 @@ class InDetail {
     this.appVersion,
   });
 
-  /// ✅ Konversi ke Map untuk Firestore atau JSON
   Map<String, dynamic> toMap() {
     return {
       'BSTME': bstme,
@@ -102,10 +101,8 @@ class InDetail {
     };
   }
 
-  /// ✅ Alias untuk kompatibilitas dengan model lain
   Map<String, dynamic> toJson() => toMap();
 
-  /// ✅ Factory untuk membuat objek dari JSON
   factory InDetail.fromJson(Map<String, dynamic> data) {
     return InDetail(
       bstme: data['BSTME']?.toString() ?? '',
@@ -154,7 +151,6 @@ class InDetail {
     );
   }
 
-  /// ✅ Clone object agar data aman dari referensi langsung
   InDetail.clone(InDetail data) {
     bstme = data.bstme;
     descr = data.descr;
@@ -189,6 +185,5 @@ class InDetail {
     appVersion = data.appVersion;
   }
 
-  /// ✅ Metode helper untuk menggandakan object
   InDetail clone() => InDetail.clone(this);
 }

@@ -3,50 +3,44 @@ import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 
 class StockTakeDetailModel {
-  final String? werks; // Factory
-  final String? matnr; // Material number
-  final double labst; // Stock in storage
-  final String? lgort; // Storage location
-  final double insme; // Reserved field
-  final double speme; // Reserved field
-  final String? normt; // Standard text
-  final String? meins; // Base unit of measure
-  final String? matkl; // Material group
-  final String maktx; // Material description
+  final String? werks;
+  final String? matnr;
+  final double labst;
+  final String? lgort;
+  final double insme;
+  final double speme;
+  final String? normt;
+  final String? meins;
+  final String? matkl;
+  final String maktx;
   final String isApprove;
   final String selectedChoice;
-  final List<Marm>? marm; // List of material unit conversion
+  final List<Marm>? marm;
   final ValueNotifier<bool> checkboxValidation;
-
-  // PERBAIKAN: Tambahkan properti yang hilang dengan nilai default
-  final String NORMT;
-  final String MATNR;
-  final String MAKTX;
+  final String nORMT;
+  final String mATNR;
+  final String mAKTX;
 
   static final _logger = Logger();
 
   StockTakeDetailModel({
     this.werks,
-    String? matnr,
+    this.matnr,
     required this.labst,
     this.lgort,
     required this.insme,
     required this.speme,
-    String? normt,
+    this.normt,
     this.meins,
     this.matkl,
-    required String maktx,
+    required this.maktx,
     required this.isApprove,
     required this.selectedChoice,
     this.marm,
     ValueNotifier<bool>? checkboxValidation,
-  }) : // PERBAIKAN: Inisialisasi di initializer list
-       matnr = matnr ?? '',
-       normt = normt ?? '',
-       maktx = maktx,
-       MATNR = matnr ?? '', // Set MATNR sama dengan matnr
-       NORMT = normt ?? '', // Set NORMT sama dengan normt
-       MAKTX = maktx, // Set MAKTX sama dengan maktx
+  }) : mATNR = matnr ?? '',
+       nORMT = normt ?? '',
+       mAKTX = maktx,
        checkboxValidation = checkboxValidation ?? ValueNotifier<bool>(false);
 
   Map<String, dynamic> toMap() {
@@ -67,8 +61,8 @@ class StockTakeDetailModel {
         'MARM': marm?.map((e) => e.toMap()).toList(),
         'checkboxvalidation': checkboxValidation.value,
       };
-    } catch (e) {
-      _logger.e('Error in toMap: $e');
+    } catch (e, stack) {
+      _logger.e('Error in toMap: $e', stackTrace: stack);
       return {};
     }
   }
@@ -80,15 +74,15 @@ class StockTakeDetailModel {
           : null;
 
       return StockTakeDetailModel(
-        werks: data['WERKS'] as String? ?? '',
-        matnr: data['MATNR'] as String? ?? '',
+        werks: data['WERKS'] as String?,
+        matnr: data['MATNR'] as String?,
         labst: (data['LABST'] as num?)?.toDouble() ?? 0.0,
-        lgort: data['LGORT'] as String? ?? '',
+        lgort: data['LGORT'] as String?,
         insme: (data['INSME'] as num?)?.toDouble() ?? 0.0,
         speme: (data['SPEME'] as num?)?.toDouble() ?? 0.0,
-        normt: data['NORMT'] as String? ?? '',
-        meins: data['MEINS'] as String? ?? '',
-        matkl: data['MATKL'] as String? ?? '',
+        normt: data['NORMT'] as String?,
+        meins: data['MEINS'] as String?,
+        matkl: data['MATKL'] as String?,
         maktx: (data['MAKTX'] as String?)?.trim() ?? 'No description',
         isApprove: data['isapprove'] as String? ?? '',
         selectedChoice: data['selectedChoice'] as String? ?? 'UU',
@@ -97,8 +91,8 @@ class StockTakeDetailModel {
           data['checkboxvalidation'] as bool? ?? false,
         ),
       );
-    } catch (e) {
-      _logger.e('Error in fromJson: $e');
+    } catch (e, stack) {
+      _logger.e('Error in fromJson: $e', stackTrace: stack);
       return StockTakeDetailModel(
         labst: 0.0,
         insme: 0.0,
@@ -116,8 +110,8 @@ class StockTakeDetailModel {
     try {
       final data = documentSnapshot.data() as Map<String, dynamic>;
       return StockTakeDetailModel.fromJson(data);
-    } catch (e) {
-      _logger.e('Error in fromDocumentSnapshot: $e');
+    } catch (e, stack) {
+      _logger.e('Error in fromDocumentSnapshot: $e', stackTrace: stack);
       return StockTakeDetailModel(
         labst: 0.0,
         insme: 0.0,
@@ -174,9 +168,7 @@ class StockTakeDetailModel {
   }
 
   @override
-  int get hashCode {
-    return Object.hash(werks, matnr, labst, lgort);
-  }
+  int get hashCode => Object.hash(werks, matnr, labst, lgort);
 }
 
 class Marm {
@@ -201,13 +193,13 @@ class Marm {
   factory Marm.fromJson(Map<String, dynamic> json) {
     try {
       return Marm(
-        matnr: json['MATNR'] as String? ?? '',
-        umrez: json['UMREZ'] as String? ?? '',
-        umren: json['UMREN'] as String? ?? '',
-        meinh: json['MEINH'] as String? ?? '',
+        matnr: json['MATNR'] as String?,
+        umrez: json['UMREZ'] as String?,
+        umren: json['UMREN'] as String?,
+        meinh: json['MEINH'] as String?,
       );
-    } catch (e) {
-      _logger.e('Error in Marm.fromJson: $e');
+    } catch (e, stack) {
+      _logger.e('Error in Marm.fromJson: $e', stackTrace: stack);
       return const Marm();
     }
   }
@@ -232,7 +224,5 @@ class Marm {
   }
 
   @override
-  int get hashCode {
-    return Object.hash(matnr, umrez, umren, meinh);
-  }
+  int get hashCode => Object.hash(matnr, umrez, umren, meinh);
 }

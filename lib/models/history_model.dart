@@ -30,13 +30,12 @@ class HistoryModel extends StockDetail implements ImmobileItem {
   String? bwart;
   String? truck;
 
-  // Batas srModel
   String? recordId;
   String? createdAt;
-  String? inventoryGroup;
 
-  // NOTE: jangan deklarasikan `location` langsung di sini karena StockDetail sudah mendefinisikannya.
-  // pakai private storage dan override getter/setter supaya cocok dengan signature parent.
+  @override
+  set inventoryGroup(String? value) => super.inventoryGroup = value;
+
   String? _location;
   String? locationName;
   String? deliveryDate;
@@ -48,14 +47,17 @@ class HistoryModel extends StockDetail implements ImmobileItem {
   String? isApprove;
   String? documentNo;
 
-  // Stockcheck
   String? color;
-  String? formattedUpdatedAt;
-  String? updatedAt;
+
+  @override
+  set formattedUpdatedAt(String? value) => super.formattedUpdatedAt = value;
+
+  @override
+  set updatedAt(String? value) => super.updatedAt = value;
+
   List<StockDetail>? detailStockCheck;
   String? postingDate;
 
-  // override getter supaya cocok dengan StockDetail (yang mengharapkan `String get location`)
   @override
   String get location => _location ?? '';
 
@@ -87,10 +89,10 @@ class HistoryModel extends StockDetail implements ImmobileItem {
     this.bwart,
     this.truck,
     this.recordId,
-    String? location, // optional initial location
+    String? location,
     this.locationName,
     this.createdAt,
-    this.inventoryGroup,
+    String? inventoryGroup,
     this.deliveryDate,
     this.totalItem,
     this.totalQuantity,
@@ -100,12 +102,15 @@ class HistoryModel extends StockDetail implements ImmobileItem {
     this.isApprove,
     this.documentNo,
     this.color,
-    this.formattedUpdatedAt,
-    this.updatedAt,
+    String? formattedUpdatedAt,
+    String? updatedAt,
     this.detailStockCheck,
     this.postingDate,
   }) {
     _location = location;
+    super.inventoryGroup = inventoryGroup;
+    super.formattedUpdatedAt = formattedUpdatedAt;
+    super.updatedAt = updatedAt;
   }
 
   HistoryModel cloneStockCheck() => HistoryModel.clone(this);
@@ -162,7 +167,6 @@ class HistoryModel extends StockDetail implements ImmobileItem {
       'dlv_comp': dlvComp,
       'bwart': bwart,
       'truck': truck,
-      // SR/Out fields jika perlu disimpan
       'recordid': recordId,
       'location': _location,
       'location_name': locationName,
@@ -230,18 +234,14 @@ class HistoryModel extends StockDetail implements ImmobileItem {
       isSync = other.isSync;
       clientId = other.clientId;
 
-      // Clone detail list: coba panggil clone() jika ada pada item (runtime), kalau tidak ada fallback ke same instance
       detail = other.detail?.map<DetailItem>((item) {
         try {
           final cloned = (item as dynamic).clone();
           if (cloned is DetailItem) return cloned;
-        } catch (_) {
-          // ignore; fallback to original
-        }
+        } catch (_) {}
         return item;
       }).toList();
 
-      // Clone detailStockCheck (jika StockDetail punya clone factory/static, kita coba juga, else fallback)
       detailStockCheck = other.detailStockCheck?.map<StockDetail>((item) {
         try {
           final cloned = (item as dynamic).clone();
@@ -264,7 +264,6 @@ class HistoryModel extends StockDetail implements ImmobileItem {
   HistoryModel.fromDocumentSnapshotStock(DocumentSnapshot documentSnapshot) {
     try {
       final data = documentSnapshot.data() as Map<String, dynamic>? ?? {};
-
       recordId = data['recordid'] ?? "";
       color = data['color'] ?? "";
       formattedUpdatedAt = data['formatted_updated_at'] ?? "";

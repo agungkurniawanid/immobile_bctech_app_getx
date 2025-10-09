@@ -70,11 +70,9 @@ class HistoryCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Section
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Document Badge
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -110,8 +108,6 @@ class HistoryCard extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 12.0),
-
-                // Approved Date
                 Row(
                   children: [
                     Icon(
@@ -133,8 +129,6 @@ class HistoryCard extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 8.0),
-
-                // Approved By
                 Row(
                   children: [
                     Icon(
@@ -155,7 +149,6 @@ class HistoryCard extends StatelessWidget {
                   ],
                 ),
 
-                // Optional: Additional Information
                 if (index == 0) ...[
                   const SizedBox(height: 8.0),
                   Row(
@@ -185,7 +178,6 @@ class HistoryCard extends StatelessWidget {
   }
 }
 
-// Compact version for lists
 class CompactHistoryCard extends StatelessWidget {
   final String documentNumber;
   final String date;
@@ -236,8 +228,8 @@ class CompactHistoryCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
           decoration: BoxDecoration(
             color:
-                statusColor?.withOpacity(0.1) ??
-                colorScheme.primary.withOpacity(0.1),
+                statusColor?.withValues(alpha: 0.1) ??
+                colorScheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8.0),
             border: Border.all(
               color: statusColor ?? colorScheme.primary,

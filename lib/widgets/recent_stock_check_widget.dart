@@ -18,6 +18,7 @@ class RecentStockCheck extends StatelessWidget {
   final GlobalVM globalVM = Get.find();
 
   RecentStockCheck({
+    super.key,
     this.index = 0,
     this.icon = Icons.check,
     this.elevation = 9,
@@ -40,9 +41,8 @@ class RecentStockCheck extends StatelessWidget {
     double fem = MediaQuery.of(context).size.width / baseWidth;
     double ffem = fem * 0.97;
 
-    // Safety check untuk index
     if (stockCheckVM.toliststock.length <= index) {
-      return SizedBox(); // Return empty widget jika index tidak valid
+      return SizedBox();
     }
 
     final stockItem = stockCheckVM.toliststock[index];
@@ -67,7 +67,6 @@ class RecentStockCheck extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header dengan warna
               Container(
                 margin: EdgeInsets.fromLTRB(0 * fem, 0 * fem, 0 * fem, 6 * fem),
                 width: double.infinity,
@@ -94,7 +93,6 @@ class RecentStockCheck extends StatelessWidget {
                 ),
               ),
 
-              // Last Transaction
               Container(
                 margin: EdgeInsets.fromLTRB(4 * fem, 0 * fem, 0 * fem, 4 * fem),
                 child: RichText(
@@ -124,7 +122,6 @@ class RecentStockCheck extends StatelessWidget {
                 ),
               ),
 
-              // Total Item
               Container(
                 margin: EdgeInsets.fromLTRB(4 * fem, 0 * fem, 0 * fem, 4 * fem),
                 child: RichText(

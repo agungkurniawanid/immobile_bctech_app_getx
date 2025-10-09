@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:logger/logger.dart';
 
 class Role {
   final List<String>? stocktake;
@@ -16,7 +17,6 @@ class Role {
     this.updatedby,
   });
 
-  // --------- Factory constructor for empty role ---------
   factory Role.empty() {
     return Role(
       stocktake: [],
@@ -27,7 +27,6 @@ class Role {
     );
   }
 
-  // --------- Factory dari JSON biasa ---------
   factory Role.fromJson(Map<String, dynamic> data) {
     return Role(
       stocktake:
@@ -41,7 +40,6 @@ class Role {
     );
   }
 
-  // --------- Factory dari Firestore Document ---------
   factory Role.fromDocumentSnapshot(DocumentSnapshot documentSnapshot) {
     try {
       final data = documentSnapshot.data() as Map<String, dynamic>? ?? {};
@@ -53,12 +51,11 @@ class Role {
         updatedby: data['updatedby'] ?? '',
       );
     } catch (e) {
-      print('Error parsing Role from Firestore: $e');
+      Logger().e('Error parsing Role from Firestore: $e');
       return Role.empty(); // Use empty constructor here
     }
   }
 
-  // --------- Konversi ke Map / JSON ---------
   Map<String, dynamic> toJsonUser() => {
     "stocktake": stocktake ?? [],
     "inmodel": inmodel ?? [],
@@ -67,7 +64,6 @@ class Role {
     "updated": updated ?? '',
   };
 
-  // --------- Check if role is empty ---------
   bool get isEmpty {
     return (stocktake?.isEmpty ?? true) &&
         (inmodel?.isEmpty ?? true) &&
@@ -80,5 +76,4 @@ class Role {
   }
 }
 
-// --------- Fungsi bantu JSON encoding ---------
 String toJsonUser(Role data) => json.encode(data.toJsonUser());

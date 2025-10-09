@@ -393,7 +393,6 @@ class OutCard extends StatelessWidget {
             ),
           ),
 
-          // Status Indicators (only for non-WO)
           if (choice != "WO") ...[
             SizedBox(height: 8 * fem),
             Container(
@@ -458,7 +457,6 @@ class OutCard extends StatelessWidget {
   }
 }
 
-// Helper function untuk font (jika diperlukan)
 TextStyle safeGoogleFont(
   String fontFamily, {
   required double fontSize,

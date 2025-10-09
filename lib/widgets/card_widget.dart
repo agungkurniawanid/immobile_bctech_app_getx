@@ -46,7 +46,6 @@ class CardWidget extends StatelessWidget {
         height: height,
         child: Row(
           children: [
-            // Left Section
             Expanded(
               flex: 3,
               child: Container(
@@ -81,15 +80,12 @@ class CardWidget extends StatelessWidget {
                 ),
               ),
             ),
-
-            // Right Section
             Expanded(
               flex: 2,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Row(
                   children: [
-                    // Back Button (conditionally visible)
                     if (isReg) ...[
                       IconButton(
                         onPressed:
@@ -107,8 +103,6 @@ class CardWidget extends StatelessWidget {
                       ),
                       const SizedBox(width: 4.0),
                     ],
-
-                    // Main Text
                     Expanded(
                       child: TextWidget(
                         text: text ?? 'No Title',
@@ -119,8 +113,6 @@ class CardWidget extends StatelessWidget {
                         color: theme.colorScheme.primary,
                       ),
                     ),
-
-                    // Trailing Button (conditionally visible)
                     if (isReg && hasTrailingButton) ...[
                       const SizedBox(width: 4.0),
                       trailingButton!,
@@ -136,7 +128,6 @@ class CardWidget extends StatelessWidget {
   }
 }
 
-// Enhanced version with more customization options
 class CustomCardWidget extends StatelessWidget {
   final String title;
   final String? subtitle;
@@ -177,10 +168,7 @@ class CustomCardWidget extends StatelessWidget {
           padding: padding ?? const EdgeInsets.all(16.0),
           child: Row(
             children: [
-              // Leading Widget
               if (leading != null) ...[leading!, const SizedBox(width: 16.0)],
-
-              // Content
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,8 +195,6 @@ class CustomCardWidget extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // Trailing Widget
               if (trailing != null) ...[const SizedBox(width: 12.0), trailing!],
             ],
           ),

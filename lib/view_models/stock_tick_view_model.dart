@@ -13,13 +13,12 @@ import 'package:immobile_app_fixed/models/stock_take_model.dart';
 import 'package:immobile_app_fixed/view_models/global_view_model.dart';
 import 'package:immobile_app_fixed/view_models/role_view_model.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 
 class StockTickVM extends GetxController {
   final Config config = Config();
   final GlobalVM globalvm = Get.find();
   final Rolevm rolevm = Get.find();
-
-  // Reactive variables
   final RxString selectchoice = "UU".obs;
   final RxList<dynamic> stocktickvm = <dynamic>[].obs;
   final RxString documentno = "".obs;
@@ -50,7 +49,6 @@ class StockTickVM extends GetxController {
   final Rx<dynamic> pdfBytes = Rx<dynamic>(null);
   final RxString pdfDir = ''.obs;
 
-  // Non-reactive variables
   List<String> choicelocation = [];
   String choiceforchip = "";
   final Rx<List<StocktickModel>> stocklist = Rx<List<StocktickModel>>([]);
@@ -93,19 +91,17 @@ class StockTickVM extends GetxController {
 
         for (final QueryDocumentSnapshot doc in querySnapshot.docs) {
           final InputStockTake returnstock =
-              InputStockTake.fromDocumentSnapshot(
-                doc,
-              ); // PERBAIKAN: hapus named parameter
+              InputStockTake.fromDocumentSnapshot(doc);
           listcountedstocktake.add(returnstock);
         }
 
         tolistcounted.assignAll(listcountedstocktake);
         isLoading.value = false;
       } else {
-        print("Document does not exist.");
+        Logger().e("Document does not exist.");
       }
     } catch (e) {
-      print("Error in listcounted: $e");
+      Logger().e("Error in listcounted: $e");
     }
     return [];
   }
@@ -122,9 +118,7 @@ class StockTickVM extends GetxController {
 
             for (final QueryDocumentSnapshot stock in querySnapshot.docs) {
               final InputStockTake returnstock =
-                  InputStockTake.fromDocumentSnapshot(
-                    stock,
-                  ); // PERBAIKAN: hapus named parameter
+                  InputStockTake.fromDocumentSnapshot(stock);
               listinputstocktake.add(returnstock);
             }
 
@@ -134,7 +128,7 @@ class StockTickVM extends GetxController {
             return toliststock;
           });
     } catch (e) {
-      print("Error in listDetailAll: $e");
+      Logger().e("Error in listDetailAll: $e");
       return Stream.value([]);
     }
   }
@@ -151,9 +145,7 @@ class StockTickVM extends GetxController {
 
             for (final QueryDocumentSnapshot stock in querySnapshot.docs) {
               final InputStockTake returnstock =
-                  InputStockTake.fromDocumentSnapshot(
-                    stock,
-                  ); // PERBAIKAN: hapus named parameter
+                  InputStockTake.fromDocumentSnapshot(stock);
               listinputstocktake.add(returnstock);
             }
 
@@ -163,7 +155,7 @@ class StockTickVM extends GetxController {
             return toliststock;
           });
     } catch (e) {
-      print("Error in listDetail: $e");
+      Logger().e("Error in listDetail: $e");
       return Stream.value([]);
     }
   }
@@ -186,9 +178,7 @@ class StockTickVM extends GetxController {
             if (querySnapshot.docs.isNotEmpty) {
               for (final QueryDocumentSnapshot stock in querySnapshot.docs) {
                 final StocktickModel returnstock =
-                    StocktickModel.fromDocumentSnapshotWithDetail(
-                      stock, // PERBAIKAN: hapus named parameter
-                    );
+                    StocktickModel.fromDocumentSnapshotWithDetail(stock);
 
                 if (returnstock.isapprove == choiceforchip) {
                   stocktickModellocalout.add(returnstock);
@@ -227,7 +217,7 @@ class StockTickVM extends GetxController {
             return toliststock;
           });
     } catch (e) {
-      print("Error in listDocumentStream: $e");
+      Logger().e("Error in listDocumentStream: $e");
       return Stream.value([]);
     }
   }
@@ -243,7 +233,7 @@ class StockTickVM extends GetxController {
 
       for (final QueryDocumentSnapshot stock in querySnapshot.docs) {
         final StocktickModel returnstock = StocktickModel.fromDocumentSnapshot(
-          stock, // PERBAIKAN: hapus named parameter
+          stock,
         );
 
         if (returnstock.isapprove == "N") {
@@ -258,7 +248,7 @@ class StockTickVM extends GetxController {
 
       return toliststock;
     } catch (e) {
-      print("Error in listStock: $e");
+      Logger().e("Error in listStock: $e");
       return [];
     }
   }
@@ -300,7 +290,7 @@ class StockTickVM extends GetxController {
             'detail': detail,
           });
     } catch (e) {
-      print("Error in createdocument: $e");
+      Logger().e("Error in createdocument: $e");
     }
   }
 
@@ -318,7 +308,7 @@ class StockTickVM extends GetxController {
           )
           .set(stocktickModel2.toMap());
     } catch (e) {
-      print("Error in forcounted: $e");
+      Logger().e("Error in forcounted: $e");
     }
   }
 
@@ -336,7 +326,7 @@ class StockTickVM extends GetxController {
           )
           .set(stocktickModel2.toMap());
     } catch (e) {
-      print("Error in sendtohistory: $e");
+      Logger().e("Error in sendtohistory: $e");
     }
   }
 
@@ -354,7 +344,7 @@ class StockTickVM extends GetxController {
           .doc(documentno)
           .update({'detail': detailList});
     } catch (e) {
-      print("Error in updatedetailtick: $e");
+      Logger().e("Error in updatedetailtick: $e");
     }
   }
 
@@ -372,7 +362,7 @@ class StockTickVM extends GetxController {
           .doc(stocktickModel2.documentNo)
           .update({'detail': detailList});
     } catch (e) {
-      print("Error in updatedetail: $e");
+      Logger().e("Error in updatedetail: $e");
     }
   }
 
@@ -381,7 +371,7 @@ class StockTickVM extends GetxController {
       final RequestWorkflow data = RequestWorkflow(
         documentno: lgort,
         group: werks,
-        username: username, // PERBAIKAN: gunakan constructor
+        username: username,
       );
 
       EasyLoading.show(
@@ -429,11 +419,11 @@ class StockTickVM extends GetxController {
       }
     } on TimeoutException catch (e) {
       EasyLoading.dismiss();
-      print("Timeout in getStock: $e");
+      Logger().e("Timeout in getStock: $e");
       return "Request Timeout";
     } catch (e) {
       EasyLoading.dismiss();
-      print("Error in getStock: $e");
+      Logger().e("Error in getStock: $e");
       return false;
     }
   }
@@ -458,9 +448,7 @@ class StockTickVM extends GetxController {
 
       final String url = doc.get('value') as String;
 
-      final RequestWorkflow data = RequestWorkflow(
-        documentno: documentno, // PERBAIKAN: gunakan constructor
-      );
+      final RequestWorkflow data = RequestWorkflow(documentno: documentno);
 
       final HttpClient client = HttpClient();
       client.badCertificateCallback =
@@ -500,11 +488,11 @@ class StockTickVM extends GetxController {
       }
     } on TimeoutException catch (e) {
       EasyLoading.dismiss();
-      print("Timeout in sendemail: $e");
+      Logger().e("Timeout in sendemail: $e");
       return "Request Timeout";
     } catch (e) {
       EasyLoading.dismiss();
-      print("Error in sendemail: $e");
+      Logger().e("Error in sendemail: $e");
       return false;
     }
   }
@@ -557,11 +545,11 @@ class StockTickVM extends GetxController {
       }
     } on TimeoutException catch (e) {
       EasyLoading.dismiss();
-      print("Timeout in producekafka: $e");
+      Logger().e("Timeout in producekafka: $e");
       return "Request Timeout";
     } catch (e) {
       EasyLoading.dismiss();
-      print("Error in producekafka: $e");
+      Logger().e("Error in producekafka: $e");
       return false;
     }
   }
@@ -577,7 +565,7 @@ class StockTickVM extends GetxController {
 
       await documentReference.update({"detail": detail});
     } catch (e) {
-      print("Error in changeflag: $e");
+      Logger().e("Error in changeflag: $e");
     }
   }
 
@@ -593,7 +581,7 @@ class StockTickVM extends GetxController {
         "updatedby": stocktickModel.updatedby,
       });
     } catch (e) {
-      print("Error in approveall: $e");
+      Logger().e("Error in approveall: $e");
     }
   }
 
@@ -625,11 +613,11 @@ class StockTickVM extends GetxController {
       return selectedDoc.detail
           .where(
             (element) =>
-                element.MAKTX.toLowerCase().contains(
+                element.mAKTX.toLowerCase().contains(
                   searchValue.value.toLowerCase(),
                 ) ||
-                element.NORMT.contains(searchValue.value) ||
-                element.MATNR.contains(searchValue.value),
+                element.nORMT.contains(searchValue.value) ||
+                element.mATNR.contains(searchValue.value),
           )
           .toSet()
           .toList();

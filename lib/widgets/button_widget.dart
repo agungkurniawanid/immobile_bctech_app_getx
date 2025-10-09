@@ -53,7 +53,6 @@ class BtnWidget extends StatelessWidget {
   }
 }
 
-// Alternative with ElevatedButton for more customization
 class CustomButtonWidget extends StatelessWidget {
   final VoidCallback onPressed;
   final String text;

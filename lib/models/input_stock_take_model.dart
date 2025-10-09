@@ -12,14 +12,13 @@ class InputStockTake {
   String selectedChoice;
   String unitBox;
   String unitBun;
-  String sapStockBun; // New field
-  String sapStockBox; // New field
+  String sapStockBun;
+  String sapStockBox;
   String downloadTime;
   String sloc;
   String plant;
   bool isTick;
 
-  // Constructor
   InputStockTake({
     this.section = "",
     this.countBox = 0,
@@ -40,7 +39,6 @@ class InputStockTake {
     this.isTick = false,
   });
 
-  // Constructor dari Firestore document
   factory InputStockTake.fromDocumentSnapshot(DocumentSnapshot document) {
     final data = document.data() as Map<String, dynamic>? ?? {};
     return InputStockTake(
@@ -68,7 +66,6 @@ class InputStockTake {
     );
   }
 
-  // Clone method
   InputStockTake clone() => InputStockTake(
     section: section,
     countBox: countBox,
@@ -89,7 +86,6 @@ class InputStockTake {
     isTick: isTick,
   );
 
-  // Convert ke Map
   Map<String, dynamic> toMap() {
     return {
       "documentno": documentNo,
@@ -112,7 +108,6 @@ class InputStockTake {
     };
   }
 
-  // Convert list ke Map (untuk kirim banyak input sekaligus)
   static Map<String, dynamic> toMapWithMultipleInputs(
     List<InputStockTake> items,
   ) {
@@ -123,7 +118,6 @@ class InputStockTake {
     return {"DESTCLIENT": "402", "DATA_INPUT": dataInputs};
   }
 
-  // Factory dari JSON
   factory InputStockTake.fromJson(Map<String, dynamic> data) {
     return InputStockTake(
       section: data['section'] ?? "",

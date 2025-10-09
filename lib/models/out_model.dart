@@ -4,7 +4,6 @@ import 'details_out_model.dart';
 import 'immobileitem_model.dart';
 import 'detail_double_out_model.dart';
 
-/// Model utama untuk data pengeluaran barang (Out)
 class OutModel implements ImmobileItem {
   String? recordId;
   String? createdAt;
@@ -58,7 +57,6 @@ class OutModel implements ImmobileItem {
     this.postingDate,
   });
 
-  /// ✅ Override method dari ImmobileItem
   @override
   String getApprovedat(String user) {
     String maxDate = '';
@@ -84,7 +82,6 @@ class OutModel implements ImmobileItem {
     return maxDate;
   }
 
-  /// ✅ Factory untuk parsing dari JSON biasa
   factory OutModel.fromJson(Map<String, dynamic> data) {
     return OutModel(
       recordId: data['recordid'] ?? '',
@@ -124,7 +121,6 @@ class OutModel implements ImmobileItem {
     );
   }
 
-  /// ✅ Factory dari Firestore DocumentSnapshot
   factory OutModel.fromDocumentSnapshot(
     DocumentSnapshot<Map<String, dynamic>> doc,
   ) {
@@ -132,10 +128,8 @@ class OutModel implements ImmobileItem {
     return OutModel.fromJson(data);
   }
 
-  /// ✅ Clone instance
   OutModel clone() => OutModel.fromJson(toMap());
 
-  /// ✅ Konversi ke Map (untuk disimpan ke Firestore / JSON)
   Map<String, dynamic> toMap() {
     return {
       'recordid': recordId,
@@ -165,6 +159,5 @@ class OutModel implements ImmobileItem {
     };
   }
 
-  /// ✅ Konversi ke JSON String
   String toJsonString() => jsonEncode(toMap());
 }

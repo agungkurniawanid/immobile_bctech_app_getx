@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:async/async.dart'; // ✅ tambahkan ini untuk StreamZip
+import 'package:async/async.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -173,7 +173,6 @@ class InVM extends GetxController {
 
       final List<InModel> result = [];
       for (final sr in query.docs) {
-        // ✅ gunakan positional parameter sesuai definisi di InModel
         final returnpo = InModel.fromDocumentSnapshot(sr);
         final returnpobackup = InModel.fromDocumentSnapshot(sr);
 
@@ -374,6 +373,7 @@ class InVM extends GetxController {
 
   @override
   void onClose() {
+    srlist.close();
     super.onClose();
   }
 }

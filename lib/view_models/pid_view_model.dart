@@ -9,17 +9,14 @@ import 'package:immobile_app_fixed/models/stock_check_model.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:logger/logger.dart';
 
 class PidViewModel extends GetxController {
   final Config config = Config();
-
-  // Observable lists
   final tolistforscan = <StockModel>[].obs;
   final tolistpid = <StockModel>[].obs;
   final toliststockhistory = <StockModel>[].obs;
   final stockhistory = <StockModel>[].obs;
-
-  // Rx variables
   final stocklist = Rx<List<StockModel>>([]);
   final isLoading = true.obs;
   final datetimenow = DateTime.now().obs;
@@ -35,8 +32,6 @@ class PidViewModel extends GetxController {
   final pdfDir = ''.obs;
   final tutorialRecent = true.obs;
   final countedstring = ''.obs;
-
-  // Local lists
   final _stockModelLocal = <StockModel>[];
   final _stockModelLocalOut = <StockModel>[];
   final _stockForHistory = <StockModel>[];
@@ -57,9 +52,7 @@ class PidViewModel extends GetxController {
         _clearLocalLists();
 
         for (final stock in query.docs) {
-          final stockModel = StockModel.fromDocumentSnapshot(
-            stock,
-          ); // Hapus named parameter
+          final stockModel = StockModel.fromDocumentSnapshot(stock);
           _categorizeStock(stockModel);
         }
 
@@ -68,7 +61,7 @@ class PidViewModel extends GetxController {
         return tolistpid;
       });
     } catch (e) {
-      print('Error in listPID: $e');
+      Logger().e('Error in listPID: $e');
       return Stream.value([]);
     }
   }
@@ -91,12 +84,8 @@ class PidViewModel extends GetxController {
   }
 
   void _processAndSortStocks() {
-    // Combine lists
     _stockModelLocalOut.addAll(_stockModelLocal);
-
-    // Sort details and main list
     _stockModelLocalOut.sort((a, b) => b.updatedAt!.compareTo(a.updatedAt!));
-
     tolistpid.assignAll(_stockModelLocalOut);
   }
 
@@ -138,7 +127,7 @@ class PidViewModel extends GetxController {
             'detail': tdata,
           });
     } catch (e) {
-      print('Error in sendToHistory: $e');
+      Logger().e('Error in sendToHistory: $e');
     }
   }
 
@@ -192,11 +181,11 @@ class PidViewModel extends GetxController {
       }
     } on TimeoutException catch (e) {
       await EasyLoading.dismiss();
-      print('Timeout in refreshStock: $e');
+      Logger().e('Timeout in refreshStock: $e');
       return "Timeout Error";
     } catch (e) {
       await EasyLoading.dismiss();
-      print('Error in refreshStock: $e');
+      Logger().e('Error in refreshStock: $e');
       return false;
     }
   }
@@ -231,7 +220,7 @@ class PidViewModel extends GetxController {
             'detail': tdata,
           });
     } catch (e) {
-      print('Error in approveAll: $e');
+      Logger().e('Error in approveAll: $e');
     }
   }
 
@@ -260,7 +249,7 @@ class PidViewModel extends GetxController {
 
       return countedstring.value;
     } catch (e) {
-      print('Error in counted: $e');
+      Logger().e('Error in counted: $e');
       countedstring.value = '${year}100000001';
       return countedstring.value;
     }
@@ -274,7 +263,7 @@ class PidViewModel extends GetxController {
         'documentno': documentno,
       });
     } catch (e) {
-      print('Error in sendCounted: $e');
+      Logger().e('Error in sendCounted: $e');
     }
   }
 
@@ -307,7 +296,7 @@ class PidViewModel extends GetxController {
             'detail': tdata,
           });
     } catch (e) {
-      print('Error in approveStock: $e');
+      Logger().e('Error in approveStock: $e');
     }
   }
 

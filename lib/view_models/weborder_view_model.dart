@@ -45,9 +45,6 @@ class WeborderVM extends GetxController {
     wolist.bindStream(listWO());
   }
 
-  // -------------------------------------------------
-  // STREAM DARI FIRESTORE
-  // -------------------------------------------------
   Stream<List<OutModel>> listWO() {
     try {
       tolistWO.clear();
@@ -94,9 +91,6 @@ class WeborderVM extends GetxController {
     }
   }
 
-  // -------------------------------------------------
-  // GET WEB ORDER HEADER VIA API
-  // -------------------------------------------------
   Future<dynamic> getlistwo(int userid) async {
     try {
       final data = RequestWorkflow(userid: userid);

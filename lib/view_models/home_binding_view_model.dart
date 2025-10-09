@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import 'package:immobile_app_fixed/view_models/history_view_model.dart';
 import 'package:immobile_app_fixed/view_models/pid_view_model.dart';
 import 'package:immobile_app_fixed/view_models/stock_request_view_model.dart';
-import 'categoryvm.dart';
+import 'category_view_model.dart';
 import 'weborder_view_model.dart';
 import 'in_view_model.dart';
 import 'stock_check_view_model.dart';
@@ -14,7 +14,6 @@ import 'role_view_model.dart';
 class HomeBinding implements Bindings {
   @override
   void dependencies() {
-    // Semua ViewModel akan dibuat saat dipanggil pertama kali dan akan di-recreate jika dihapus
     Get.lazyPut<CategoryVM>(() => CategoryVM(), fenix: true);
     Get.lazyPut<WeborderVM>(() => WeborderVM(), fenix: true);
     Get.lazyPut<StockRequestVM>(() => StockRequestVM(), fenix: true);

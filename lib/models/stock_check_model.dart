@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:logger/logger.dart';
 import 'stock_detail_model.dart';
 import 'immobileitem_model.dart';
 
@@ -40,7 +41,6 @@ class StockModel implements ImmobileItem {
     this.detail,
   });
 
-  /// ✅ copyWith untuk update sebagian field tanpa ubah seluruh object
   StockModel copyWith({
     String? recordid,
     String? color,
@@ -79,7 +79,6 @@ class StockModel implements ImmobileItem {
     );
   }
 
-  /// 🔁 Clone method untuk menyalin object
   StockModel clone() => StockModel(
     recordid: recordid,
     color: color,
@@ -101,7 +100,6 @@ class StockModel implements ImmobileItem {
         : [],
   );
 
-  /// 🔍 Ambil tanggal approval terakhir user
   @override
   String getApprovedat(String user) {
     String maxDate = "2000-01-01";
@@ -124,7 +122,6 @@ class StockModel implements ImmobileItem {
     return maxDate;
   }
 
-  /// 🏗️ Factory dari Firestore Document
   factory StockModel.fromDocumentSnapshot(DocumentSnapshot documentSnapshot) {
     try {
       final data = documentSnapshot.data() as Map<String, dynamic>? ?? {};
@@ -152,12 +149,11 @@ class StockModel implements ImmobileItem {
             : [],
       );
     } catch (e) {
-      print('Error parsing StockModel: $e');
+      Logger().e('Error parsing StockModel: $e');
       return StockModel();
     }
   }
 
-  /// 🔁 Konversi ke JSON
   Map<String, dynamic> toJson() => {
     'recordid': recordid,
     'color': color,

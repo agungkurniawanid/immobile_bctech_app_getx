@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:logger/logger.dart';
 import 'detail_sr_model.dart';
 
 class SrModel {
@@ -47,7 +48,6 @@ class SrModel {
     this.documentno,
   });
 
-  // ---------- Factory dari Firestore ----------
   factory SrModel.fromDocumentSnapshot(DocumentSnapshot documentSnapshot) {
     try {
       final data = documentSnapshot.data() as Map<String, dynamic>? ?? {};
@@ -81,12 +81,11 @@ class SrModel {
         documentno: data['documentno']?.toString() ?? '',
       );
     } catch (e) {
-      print('Error parsing SrModel: $e');
+      Logger().e('Error parsing SrModel: $e');
       return SrModel();
     }
   }
 
-  // ---------- Optional: konversi ke JSON ----------
   Map<String, dynamic> toJson() => {
     'recordid': recordid,
     'createdat': createdat,

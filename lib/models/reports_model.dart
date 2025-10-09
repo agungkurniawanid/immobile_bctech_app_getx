@@ -29,12 +29,7 @@ class ReportsModel extends StockDetail implements ImmobileItem {
   String? dlvComp;
   String? bwart;
   String? truck;
-
-  // SR Model
-  String? recordid;
   String? createdat;
-  String? inventoryGroup;
-  String? location;
   String? locationName;
   String? deliveryDate;
   int? totalItem;
@@ -44,11 +39,7 @@ class ReportsModel extends StockDetail implements ImmobileItem {
   List<DetailDouble>? detailDouble;
   String? isApprove;
   String? documentNo;
-
-  // Stock Check
   String? color;
-  String? formattedUpdatedAt;
-  String? updatedAt;
   List<StockDetail>? detailStockCheck;
   String? flag;
 
@@ -74,10 +65,8 @@ class ReportsModel extends StockDetail implements ImmobileItem {
     this.dlvComp,
     this.bwart,
     this.truck,
-    this.recordid,
+    String? recordid,
     this.createdat,
-    this.inventoryGroup,
-    this.location,
     this.locationName,
     this.deliveryDate,
     this.totalItem,
@@ -88,16 +77,14 @@ class ReportsModel extends StockDetail implements ImmobileItem {
     this.isApprove,
     this.documentNo,
     this.color,
-    this.formattedUpdatedAt,
-    this.updatedAt,
     this.detailStockCheck,
     this.flag,
-  });
+  }) {
+    super.recordid = recordid;
+  }
 
-  // Clone method
   ReportsModel cloneStockCheck() => ReportsModel.clone(this);
 
-  // --- OVERRIDE dari ImmobileItem
   @override
   String getApprovedat(String user) {
     String maxDate = '';
@@ -107,7 +94,6 @@ class ReportsModel extends StockDetail implements ImmobileItem {
     return maxDate;
   }
 
-  // --- Factory untuk parsing JSON
   factory ReportsModel.fromJsonDetail(Map<String, dynamic> data) {
     return ReportsModel(
       aedat: data['aedat'],
@@ -135,7 +121,6 @@ class ReportsModel extends StockDetail implements ImmobileItem {
     );
   }
 
-  // --- Convert ke Map (misal untuk upload Firestore)
   @override
   Map<String, dynamic> toMap() {
     return {
@@ -163,7 +148,6 @@ class ReportsModel extends StockDetail implements ImmobileItem {
     };
   }
 
-  // --- Firestore Converters
   ReportsModel.fromDocumentSnapshotInModel({
     required DocumentSnapshot documentSnapshot,
   }) {

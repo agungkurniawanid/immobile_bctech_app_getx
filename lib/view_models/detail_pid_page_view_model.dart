@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
-import 'dart:ui';
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:flutter/cupertino.dart';
@@ -19,6 +17,7 @@ import 'package:immobile_app_fixed/widgets/text_widget.dart';
 import 'package:intl/intl.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:logger/logger.dart';
 
 class DetailPidPage extends StatefulWidget {
   final int index;
@@ -151,16 +150,13 @@ class _DetailPidPageState extends State<DetailPidPage> {
       if (barcodeString.isNotEmpty) {
         pcsctnnotifier.value = false;
 
-        // Gunakan list aman dari null
         final details = stock.detail ?? [];
 
-        // Cari item yang sesuai
         final foundItem = details.firstWhere(
           (element) => element.itemCode?.contains(barcodeString) ?? false,
-          orElse: () => details.first, // fallback jika tidak ketemu
+          orElse: () => details.first,
         );
 
-        // Gunakan nilai default jika null
         pickedctnmain.value = foundItem.warehouseStockMainCtn ?? 0;
         pickedctngood.value = foundItem.warehouseStockGoodCtn ?? 0;
         pickedpcsmain.value = foundItem.warehouseStockMain ?? 0;
@@ -168,7 +164,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
 
         fromscan = false;
 
-        // ✅ gunakan showModalBottomSheet bawaan flutter
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
@@ -211,7 +206,7 @@ class _DetailPidPageState extends State<DetailPidPage> {
 
   void handleCountedResult() {
     pidVM.counted().then((result) {
-      pidVM.countedstring.value = result; // Process the result string here
+      pidVM.countedstring.value = result;
     });
   }
 
@@ -256,7 +251,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
-      // user must tap button!
       builder: (BuildContext context) => StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
@@ -264,13 +258,12 @@ class _DetailPidPageState extends State<DetailPidPage> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(15)),
             ),
-            content: Container(
+            content: SizedBox(
               height: MediaQuery.of(context).size.height / 2.5,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    // mdiwarningcircleut4 (11:1225)
                     margin: EdgeInsets.fromLTRB(
                       0 * fem,
                       0 * fem,
@@ -286,7 +279,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
                     ),
                   ),
                   Container(
-                    // areyousuretodiscardallchangesm (11:1227)
                     margin: EdgeInsets.fromLTRB(
                       0 * fem,
                       0 * fem,
@@ -306,8 +298,7 @@ class _DetailPidPageState extends State<DetailPidPage> {
                       ),
                     ),
                   ),
-                  Container(
-                    // autogroupf5ebdRu (UM6eDoseJp3PyzDupvF5EB)
+                  SizedBox(
                     width: double.infinity,
                     height: 25 * fem,
                     child: Row(
@@ -396,23 +387,11 @@ class _DetailPidPageState extends State<DetailPidPage> {
                               stockdetail.isScanned = "Y";
                             }
                             if (tanda == "all") {
-                              // handleCountedResult();
-                              // pidVM.tolistpid.value[widget.index].detail
-                              //     .clear();
-                              // if (_isSearching == true) {
-                              //   for (var item in listdetailstock) {
-                              //     pidVM.tolistpid.value[widget.index]
-                              //         .detail
-                              //         .add(item);
-                              //   }
-                              // }
                               stockmodel.isApprove = "Counted";
                               stockmodel.updatedby = username;
                               stockmodel.updated = todaytime;
                               stockmodel.formattedUpdatedAt = todaytime;
                               stockmodel.color = "GREEN";
-
-                              // stockmodel.update
                             } else {
                               stockdetail.warehouseStockGood =
                                   pickedpcsgood.value;
@@ -431,33 +410,25 @@ class _DetailPidPageState extends State<DetailPidPage> {
                             Get.back();
 
                             if (tanda == "all") {
-                              // Pastikan recordid tidak null
                               stockmodel.recordid = pidVM.countedstring.value;
-
-                              // Ambil detail yang sudah dicek, pastikan aman dari null
                               final details =
                                   pidVM.tolistpid[widget.index].detail ?? [];
 
-                              // Filter data yang checked == 1
                               final maptdata = details
                                   .where((element) => element.checked == 1)
                                   .map((person) => person.toMap())
                                   .toList();
 
-                              // Jalankan approval dan kirim data
                               pidVM.approveAll(stockmodel, "Y", maptdata);
                               pidVM.sendToHistory(stockmodel, maptdata);
                               pidVM.sendCounted(stockmodel.recordid ?? "");
 
-                              // Refresh stock (tanpa hasil yang tidak digunakan)
                               await pidVM.refreshStock(
                                 pidVM.tolistpid[widget.index],
                               );
 
-                              // Tutup halaman
                               Get.back();
                             } else {
-                              // Jika bukan "all", kirim semua data tanpa filter
                               final details =
                                   pidVM.tolistpid[widget.index].detail ?? [];
                               final maptdata = details
@@ -478,7 +449,7 @@ class _DetailPidPageState extends State<DetailPidPage> {
                               textColor: Colors.white,
                             );
                           },
-                        ), // )
+                        ),
                       ],
                     ),
                   ),
@@ -498,7 +469,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
-      // user must tap button!
       builder: (BuildContext context) => StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
@@ -506,13 +476,12 @@ class _DetailPidPageState extends State<DetailPidPage> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(15)),
             ),
-            content: Container(
+            content: SizedBox(
               height: MediaQuery.of(context).size.height / 2.5,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    // mdiwarningcircleut4 (11:1225)
                     margin: EdgeInsets.fromLTRB(
                       0 * fem,
                       0 * fem,
@@ -528,7 +497,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
                     ),
                   ),
                   Container(
-                    // areyousuretodiscardallchangesm (11:1227)
                     margin: EdgeInsets.fromLTRB(
                       0 * fem,
                       0 * fem,
@@ -548,8 +516,7 @@ class _DetailPidPageState extends State<DetailPidPage> {
                       ),
                     ),
                   ),
-                  Container(
-                    // autogroupf5ebdRu (UM6eDoseJp3PyzDupvF5EB)
+                  SizedBox(
                     width: double.infinity,
                     height: 25 * fem,
                     child: Row(
@@ -557,7 +524,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
                       children: [
                         GestureDetector(
                           child: Container(
-                            // cancelbutton8Nf (11:1273)
                             margin: EdgeInsets.fromLTRB(
                               20 * fem,
                               0 * fem,
@@ -596,7 +562,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
                         ),
                         GestureDetector(
                           child: Container(
-                            // savebuttonSnf (11:1278)
                             padding: EdgeInsets.fromLTRB(
                               24 * fem,
                               5 * fem,
@@ -616,7 +581,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
                               ],
                             ),
                             child: Center(
-                              // checkcircle7du (11:1280)
                               child: SizedBox(
                                 width: 30 * fem,
                                 height: 30 * fem,
@@ -655,7 +619,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
-      // user must tap button!
       builder: (BuildContext context) => StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
@@ -663,7 +626,7 @@ class _DetailPidPageState extends State<DetailPidPage> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(15)),
             ),
-            content: Container(
+            content: SizedBox(
               height: MediaQuery.of(context).size.height / 1,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -784,7 +747,7 @@ class _DetailPidPageState extends State<DetailPidPage> {
                           },
                         ),
                       ),
-                      Container(
+                      SizedBox(
                         width: 50,
                         height: 50,
                         child: TextField(
@@ -913,14 +876,12 @@ class _DetailPidPageState extends State<DetailPidPage> {
                                   );
                                 }
                                 pickedpcsgood.value = typeIndexgood;
-                                // indetail.warehouse_stock_good =
-                                //     typeIndexmain;
                               }
                             });
                           },
                         ),
                       ),
-                      Container(
+                      SizedBox(
                         width: 50,
                         height: 50,
                         child: TextField(
@@ -991,7 +952,7 @@ class _DetailPidPageState extends State<DetailPidPage> {
                   SizedBox(height: 30),
                   Align(
                     alignment: Alignment.center,
-                    child: Container(
+                    child: SizedBox(
                       // autogroupf5ebdRu (UM6eDoseJp3PyzDupvF5EB)
                       width: double.infinity,
                       height: 30 * fem,
@@ -1105,7 +1066,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
       margin: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       height: GlobalVar.height * 0.85,
       child: Container(
-        // addqtypickitemoverlaycheckctnj (25:1581)
         padding: EdgeInsets.fromLTRB(0 * fem, 10 * fem, 0 * fem, 0 * fem),
         width: double.infinity,
         decoration: BoxDecoration(color: Color(0xffffffff)),
@@ -1115,7 +1075,7 @@ class _DetailPidPageState extends State<DetailPidPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
+                SizedBox(
                   child: Text(
                     ' ${detail.itemName}',
                     style: safeGoogleFont(
@@ -1127,7 +1087,7 @@ class _DetailPidPageState extends State<DetailPidPage> {
                     ),
                   ),
                 ),
-                Container(
+                SizedBox(
                   child: GestureDetector(
                     child: Image.asset(
                       'data/images/cancel-viF.png',
@@ -1170,7 +1130,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
                   borderRadius: BorderRadius.circular(8 * fem),
                 ),
                 child: Center(
-                  // bdbfad6c1c455b9ccc448655df81b3 (25:1597)
                   child: SizedBox(
                     width: 110 * fem,
                     height: 108 * fem,
@@ -1186,7 +1145,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
               },
             ),
             Container(
-              // borderdLt (25:1584)
               width: double.infinity,
               height: 1 * fem,
               decoration: BoxDecoration(color: Color(0xffa8a8a8)),
@@ -1215,7 +1173,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              // Toggle Button CTN/PCS
                               Container(
                                 margin: EdgeInsets.fromLTRB(
                                   69 * fem,
@@ -1238,7 +1195,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    // CTN Button
                                     GestureDetector(
                                       onTap: () {
                                         setState(() {
@@ -1329,7 +1285,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
                                 ),
                               ),
 
-                              // Current Quantity Values
                               Container(
                                 margin: EdgeInsets.fromLTRB(
                                   16 * fem,
@@ -1342,7 +1297,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    // Main Stock
                                     Container(
                                       margin: EdgeInsets.fromLTRB(
                                         0 * fem,
@@ -1474,7 +1428,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
                                 ),
                               ),
 
-                              // Actual Quantity Title
                               Container(
                                 margin: EdgeInsets.fromLTRB(
                                   0 * fem,
@@ -1495,7 +1448,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
                                 ),
                               ),
 
-                              // Actual Quantity Inputs
                               Container(
                                 margin: EdgeInsets.fromLTRB(
                                   0 * fem,
@@ -1508,7 +1460,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    // Main Input
                                     GestureDetector(
                                       onTap: () {
                                         _setupControllers(pcsCtnValue);
@@ -1627,7 +1578,7 @@ class _DetailPidPageState extends State<DetailPidPage> {
                                         _setupControllers(pcsCtnValue);
                                         _showMyDialog(detail, pcsCtnValue);
                                       },
-                                      child: Container(
+                                      child: SizedBox(
                                         width: 117 * fem,
                                         height: double.infinity,
                                         child: Column(
@@ -2102,7 +2053,7 @@ class _DetailPidPageState extends State<DetailPidPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Container(
+              SizedBox(
                 height: double.infinity,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2288,20 +2239,18 @@ class _DetailPidPageState extends State<DetailPidPage> {
   Future<void> scanBarcode() async {
     try {
       final barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-        "#ff6666", // Warna garis scan
-        "Cancel", // Tombol cancel
-        true, // Aktifkan flash
+        "#ff6666",
+        "Cancel",
+        true,
         ScanMode.BARCODE,
       );
 
-      // Cek hasil scan valid
       if (barcodeScanRes != "-1" && barcodeScanRes.isNotEmpty) {
         pcsctnnotifier.value = false;
 
         final stock = pidVM.tolistpid[widget.index];
         final details = stock.detail ?? [];
 
-        // Cari item berdasarkan hasil scan
         StockDetail? foundItem;
         if (details.isNotEmpty) {
           try {
@@ -2320,10 +2269,8 @@ class _DetailPidPageState extends State<DetailPidPage> {
           pickedpcsgood.value = foundItem.warehouseStockGood ?? 0;
           fromscan = false;
 
-          // Cek widget masih mounted sebelum pakai context
           if (!mounted) return;
 
-          // Tampilkan modal bottom sheet
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
@@ -2364,7 +2311,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
       Row(
         children: [
           Switch(
-            // activeTrackColor: Colors.amber,
             value: light0,
             onChanged: (bool value) {
               setState(() {
@@ -2385,16 +2331,12 @@ class _DetailPidPageState extends State<DetailPidPage> {
   }
 
   void searchWF(String search) async {
-    // Pastikan pidVM.tolistpid dan detail tidak null
     final currentPid = pidVM.tolistpid[widget.index];
-    currentPid.detail ??= []; // inisialisasi list kalau masih null
+    currentPid.detail ??= [];
 
-    // Bersihkan list detail lama
     currentPid.detail!.clear();
-    // Normalisasi input pencarian agar tidak case-sensitive
     final query = search.toLowerCase();
 
-    // Filter berdasarkan itemCode dan itemName (aman dari null)
     final locallist2 = listdetailstock
         .where(
           (element) => (element.itemCode?.toLowerCase() ?? '').contains(query),
@@ -2407,10 +2349,8 @@ class _DetailPidPageState extends State<DetailPidPage> {
         )
         .toList();
 
-    // Pilih hasil pencarian mana yang dipakai
     final results = locallist2.isNotEmpty ? locallist2 : localsku;
 
-    // Tambahkan hasil ke detail
     currentPid.detail!.addAll(results);
   }
 
@@ -2418,14 +2358,12 @@ class _DetailPidPageState extends State<DetailPidPage> {
     setState(() {
       listdetailstock.clear();
 
-      // Pastikan list pid dan detail aman dari null
       final currentPid = pidVM.tolistpid.isNotEmpty
           ? pidVM.tolistpid[widget.index]
           : null;
 
       final locallist = currentPid?.detail ?? [];
 
-      // Tambahkan semua data ke listdetailstock
       listdetailstock.addAll(locallist);
 
       _isSearching = true;
@@ -2443,24 +2381,20 @@ class _DetailPidPageState extends State<DetailPidPage> {
   void _clearSearchQuery() {
     setState(() {
       _isSearching = false;
-      _searchQuery.clear(); // aman jika _searchQuery null
+      _searchQuery.clear();
 
-      // Pastikan pid list aman dari null atau index error
       if (pidVM.tolistpid.isNotEmpty && widget.index < pidVM.tolistpid.length) {
         final currentPid = pidVM.tolistpid[widget.index];
 
-        // Pastikan detail tidak null
         currentPid.detail ??= [];
         currentPid.detail!.clear();
-
-        // Tambahkan kembali item dari listdetailstock
         currentPid.detail!.addAll(listdetailstock);
       }
     });
   }
 
   Widget _buildSearchField() {
-    print("masuk");
+    Logger().d("masuk");
     return TextField(
       controller: _searchQuery,
       autofocus: true,
@@ -2480,7 +2414,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
         IconButton(
           icon: const Icon(Icons.clear),
           onPressed: () {
-            // Aman dari null-safety issue
             if (_searchQuery.text.isEmpty) {
               _stopSearching();
             } else {
@@ -2495,7 +2428,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
       Row(
         children: [
           Switch(
-            // activeTrackColor: Colors.amber,
             value: light0,
             onChanged: (bool value) {
               setState(() {
@@ -2572,7 +2504,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Choice Chips
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: Wrap(
@@ -2594,7 +2525,7 @@ class _DetailPidPageState extends State<DetailPidPage> {
                         elevation: 10,
                         onSelected: (_) {
                           setState(() {
-                            idPeriodSelected = e.id; // handle null id
+                            idPeriodSelected = e.id;
                             final int choice = (idPeriodSelected) - 1;
 
                             GlobalVar.choicecategory = switch (choice) {
@@ -2609,8 +2540,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
                   ),
                 ),
 
-                // Kondisi jika belum ada data
-                // hitung dulu apakah ada item yang sudah discan (aman dari null)
                 Visibility(
                   visible: light0 == false && !hasScannedItems,
                   child: const SizedBox(height: 20),
@@ -2649,8 +2578,9 @@ class _DetailPidPageState extends State<DetailPidPage> {
                           return GestureDetector(
                             onTap: () async {
                               if (widget.flag == "history" ||
-                                  currentPid?.isApprove == "Counted")
+                                  currentPid?.isApprove == "Counted") {
                                 return;
+                              }
 
                               if (ontap) {
                                 pcsctnnotifier.value = false;
@@ -2699,7 +2629,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Reject Button
                         Container(
                           margin: EdgeInsets.only(right: 30 * fem),
                           child: TextButton(
@@ -2741,17 +2670,16 @@ class _DetailPidPageState extends State<DetailPidPage> {
                           ),
                         ),
 
-                        // Approve Button
                         TextButton(
                           onPressed: () {
                             final pid = currentPid;
                             final details = pid?.detail;
 
-                            // Cek null dan kosong dengan aman
                             if (pid == null ||
                                 details == null ||
-                                details.isEmpty)
+                                details.isEmpty) {
                               return;
+                            }
 
                             _showMyDialogApprove(pid, details.first, "all");
                           },

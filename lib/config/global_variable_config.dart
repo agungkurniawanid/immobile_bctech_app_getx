@@ -67,7 +67,6 @@ class GlobalVar {
     );
   }
 
-  // Alternative method for setting status bar color with more control
   static void setStatusBarTheme(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -84,7 +83,6 @@ class GlobalVar {
     );
   }
 
-  // Method untuk transparent status bar (modern style)
   static void setTransparentStatusBar() {
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
@@ -95,7 +93,6 @@ class GlobalVar {
     );
   }
 
-  // Method untuk colored status bar
   static void setColoredStatusBar(Color color, {bool darkIcons = true}) {
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
@@ -116,7 +113,6 @@ class GlobalVar {
       ..dismissOnTap = false;
   }
 
-  // Cleanup method to dispose controllers when no longer needed
   static void dispose() {
     myController.dispose();
     discountfeedNotifier.dispose();

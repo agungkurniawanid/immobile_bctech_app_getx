@@ -13,25 +13,6 @@ class CategoryVM extends GetxController {
   var tolistCategory = <Category>[].obs;
   var isLoading = true.obs;
 
-  // Stream untuk mendapatkan data category dari Firestore (jika masih diperlukan)
-  // Stream<List<Category>> listModel() {
-  //   return FirebaseFirestore.instance
-  //       .collection('sppa')
-  //       .doc(userController.user.value.email)
-  //       .collection('sppalist')
-  //       .snapshots()
-  //       .map((QuerySnapshot query) {
-  //     List<Category> categorylocal = [];
-  //     for (var category in query.docs) {
-  //       final returncategory = Category.fromDocumentSnapshot(documentSnapshot: category);
-  //       categorylocal.add(returncategory);
-  //     }
-  //     tolistCategory.value = categorylocal;
-  //     isLoading.value = false;
-  //     return categorylocal;
-  //   });
-  // }
-
   Future<dynamic> getcategory(int userid, String role) async {
     try {
       isLoading.value = true;
@@ -64,15 +45,12 @@ class CategoryVM extends GetxController {
             .map((i) => Category.fromJson(i))
             .toList();
 
-        // Clear old categories first
         await DatabaseHelper.db.clearCategories();
 
-        // Insert new categories
         for (final category in resList) {
           await DatabaseHelper.db.insertCategory(category.toJson());
         }
 
-        // Update reactive variable
         tolistCategory.value = resList;
         return resList;
       } else {
@@ -103,24 +81,20 @@ class CategoryVM extends GetxController {
       isLoading.value = true;
       List<Category> categories = await DatabaseHelper.db.getCategories();
       tolistCategory.value = categories;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      Logger().e('Error fetching categories: $e');
+      Logger().e(stackTrace.toString());
     } finally {
       isLoading.value = false;
     }
   }
 
-  // Method untuk clear data
   void clearData() {
     tolistCategory.clear();
     isLoading.value = true;
   }
 }
 
-// Tambahkan method toJsonCategory jika belum ada di file lain
 String toJsonCategory(RequestWorkflow data) {
-  return json.encode({
-    'userid': data.userid,
-    'role': data.role,
-    // tambahkan field lainnya sesuai kebutuhan
-  });
+  return json.encode({'userid': data.userid, 'role': data.role});
 }

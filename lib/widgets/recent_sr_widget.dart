@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:immobile_app_fixed/models/details_out_model.dart';
 import 'package:intl/intl.dart';
-
-// Sesuaikan import path dengan struktur project Anda
 import 'package:immobile_app_fixed/view_models/global_view_model.dart';
 import 'package:immobile_app_fixed/view_models/stock_request_view_model.dart';
 import 'package:immobile_app_fixed/config/global_variable_config.dart';
@@ -15,20 +13,19 @@ class RecentSR extends StatelessWidget {
   final double iconSize;
   final double fontSize;
   final double height;
-
   final NumberFormat currency = NumberFormat("#,###", "en_US");
   final StockRequestVM stockRequestVM = Get.find();
   final GlobalVM globalVM = Get.find();
 
   RecentSR({
-    Key? key,
+    super.key,
     required this.index,
     this.icon,
     this.elevation = 9,
     this.iconSize = 0.10,
     this.fontSize = 14.0,
     this.height = 40,
-  }) : super(key: key);
+  });
 
   String _calculateCTN() {
     try {
@@ -37,7 +34,6 @@ class RecentSR extends StatelessWidget {
 
       final details = stockRequestVM.srOutList[index].detail ?? [];
 
-      // Menggunakan GlobalVar.choicecategory sesuai dengan ViewModel
       if (GlobalVar.choicecategory == 'ALL') {
         listByInventoryGroup = details.toList();
       } else {
@@ -72,7 +68,6 @@ class RecentSR extends StatelessWidget {
       double total = 0;
       final details = stockRequestVM.srOutList[index].detail ?? [];
 
-      // Menggunakan GlobalVar.choicecategory sesuai dengan ViewModel
       if (GlobalVar.choicecategory == 'ALL') {
         for (final detail in details) {
           final listByUOM = detail.uom
@@ -302,7 +297,7 @@ class RecentSR extends StatelessWidget {
             borderRadius: BorderRadius.circular(8 * fem),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.25),
+                color: Colors.black.withValues(alpha: 0.25),
                 offset: Offset(0 * fem, 4 * fem),
                 blurRadius: 5 * fem,
               ),
@@ -337,7 +332,6 @@ class RecentSR extends StatelessWidget {
                 ),
               ),
 
-              // Request Date
               _buildInfoRow(
                 fem: fem,
                 ffem: ffem,
@@ -345,7 +339,6 @@ class RecentSR extends StatelessWidget {
                 value: _formatDate(outModel.deliveryDate ?? ''),
               ),
 
-              // Total Item
               _buildInfoRow(
                 fem: fem,
                 ffem: ffem,
@@ -353,7 +346,6 @@ class RecentSR extends StatelessWidget {
                 value: outModel.totalItem?.toString() ?? '0',
               ),
 
-              // Total Quantity
               Container(
                 margin: EdgeInsets.fromLTRB(4 * fem, 0, 0, 0),
                 constraints: BoxConstraints(maxWidth: 150 * fem),
@@ -403,7 +395,6 @@ class RecentSR extends StatelessWidget {
                 ),
               ),
 
-              // Status Indicators
               Container(
                 margin: EdgeInsets.fromLTRB(4 * fem, 0, 0, 0),
                 constraints: BoxConstraints(maxWidth: 150 * fem),

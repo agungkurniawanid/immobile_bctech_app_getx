@@ -7,18 +7,13 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
-// ------------------------------
-// Database Helper
-// ------------------------------
 class DatabaseHelper {
   DatabaseHelper._();
   static final DatabaseHelper db = DatabaseHelper._();
-
   static Database? _database;
 
   static const Map<int, List<String>> arrQuery = {
     2: [
-      // VERSI 2 (flow baru)
       "ALTER TABLE user ADD COLUMN id INTEGER",
       "ALTER TABLE user ADD COLUMN userid INTEGER",
       "ALTER TABLE user ADD COLUMN name TEXT(100)",
@@ -66,7 +61,6 @@ class DatabaseHelper {
       final db = await database;
       final res = await db.query("category");
 
-      // Ubah hasil query (List<Map<String, dynamic>>) menjadi List<Category>
       return res.map((map) {
         return Category(
           category: map['category']?.toString(),
@@ -134,9 +128,6 @@ class DatabaseHelper {
     await db.execute("DELETE FROM category");
   }
 
-  // ------------------------------
-  // CATEGORY
-  // ------------------------------
   Future<int?> insertCategory(Map<String, dynamic> category) async {
     try {
       final db = await database;
@@ -165,11 +156,9 @@ class DatabaseHelper {
     }
   }
 
-  // Dalam class DatabaseHelper
   Future<int> loginUser(Account account, String hasLogin) async {
     final db = await database;
 
-    // Buat objek baru agar tidak melanggar aturan final
     final updatedAccount = Account(
       userid: account.userid,
       name: account.name,

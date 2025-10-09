@@ -9,6 +9,7 @@ import 'package:immobile_app_fixed/models/account_model.dart';
 import 'package:immobile_app_fixed/models/request_model.dart';
 import 'package:immobile_app_fixed/view_models/global_view_model.dart';
 import 'package:immobile_app_fixed/view_models/role_view_model.dart';
+import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginAPI {
@@ -28,7 +29,7 @@ class LoginAPI {
         token: token,
       );
 
-      print('Token: $token');
+      Logger().e('Token: $token');
 
       final HttpClient client = HttpClient()
         ..badCertificateCallback =
@@ -55,7 +56,7 @@ class LoginAPI {
             await saveUser(jsonData);
 
             roleVM.listrole().listen((roles) {
-              print("Roles data updated: $roles");
+              Logger().e("Roles data updated: $roles");
             });
           }
           return 'SUKSES';
@@ -72,10 +73,10 @@ class LoginAPI {
           return 'Koneksi error';
       }
     } on TimeoutException catch (e) {
-      print('Timeout: $e');
+      Logger().e('Timeout: $e');
       return 'Koneksi error';
     } catch (e) {
-      print('Error: $e');
+      Logger().e('Error: $e');
       return 'Koneksi error';
     }
   }
@@ -101,13 +102,13 @@ class LoginAPI {
             'status': data.status,
           })
           .then((_) {
-            print("Sukses menyimpan user ke Firestore");
+            Logger().e("Sukses menyimpan user ke Firestore");
           })
           .catchError((err) {
-            print('Error menyimpan user: $err');
+            Logger().e('Error menyimpan user: $err');
           });
     } catch (e) {
-      print('Error saveUser: $e');
+      Logger().e('Error saveUser: $e');
     }
   }
 }

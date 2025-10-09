@@ -10,53 +10,62 @@ class Config {
   String _urlPdf = '';
   String _urlAbsn = '';
 
-  // General method to load a specific config key lazily
-  Future<void> _loadConfigIfEmpty(String key, String propertyName, void Function(String) setter) async{
+  Future<void> _loadConfigIfEmpty(
+    String key,
+    String propertyName,
+    void Function(String) setter,
+  ) async {
     propertyName = "";
     if (propertyName.isEmpty) {
       final completer = Completer<void>();
-    await  _firestore.collection('config').doc(key).get().then((doc) {
-        final value = doc.exists && doc.data() != null ? doc.get('value').toString() : '';
-        setter(value);
-        completer.complete();
-      }).catchError((e) {
-        setter(''); // Set empty string on error
-        completer.complete();
-      });
-      // Block until the Firestore fetch is done
-      completer.future.timeout(Duration(seconds: 5), onTimeout: () {
-        throw Exception('Config load timeout for $key.');
-      });
+      await _firestore
+          .collection('config')
+          .doc(key)
+          .get()
+          .then((doc) {
+            final value = doc.exists && doc.data() != null
+                ? doc.get('value').toString()
+                : '';
+            setter(value);
+            completer.complete();
+          })
+          .catchError((e) {
+            setter('');
+            completer.complete();
+          });
+      completer.future.timeout(
+        Duration(seconds: 5),
+        onTimeout: () {
+          throw Exception('Config load timeout for $key.');
+        },
+      );
     }
   }
 
-  // Generate URL from endpoint
-  Future<String> url(String endpoint) async{
-   await _loadConfigIfEmpty('baseUrl', _baseUrl, (value) => _baseUrl = value);
+  Future<String> url(String endpoint) async {
+    await _loadConfigIfEmpty('baseUrl', _baseUrl, (value) => _baseUrl = value);
     if (_baseUrl.isEmpty) {
       throw Exception('Config for baseUrl not loaded properly.');
     }
-    return _baseUrl+endpoint;
+    return _baseUrl + endpoint;
   }
 
-   // Generate URL from endpoint
-  Future<String> urlkafka(String endpoint)async {
-   await _loadConfigIfEmpty('urlkafka', _baseUrl, (value) => _baseUrl = value);
+  Future<String> urlkafka(String endpoint) async {
+    await _loadConfigIfEmpty('urlkafka', _baseUrl, (value) => _baseUrl = value);
     if (_baseUrl.isEmpty) {
       throw Exception('Config for baseUrl not loaded properly.');
     }
-    return _baseUrl+endpoint;
+    return _baseUrl + endpoint;
   }
 
-   String urlsendemail(String endpoint) {
+  String urlsendemail(String endpoint) {
     _loadConfigIfEmpty('urlsendemail', _baseUrl, (value) => _baseUrl = value);
     if (_baseUrl.isEmpty) {
       throw Exception('Config for baseUrl not loaded properly.');
     }
-    return _baseUrl+endpoint;
+    return _baseUrl + endpoint;
   }
 
-  // Get API key
   String apiKey() {
     _loadConfigIfEmpty('apiKey', _apiKey, (value) => _apiKey = value);
     if (_apiKey.isEmpty) {
@@ -65,7 +74,6 @@ class Config {
     return _apiKey;
   }
 
-  // Get Auth key
   String authKey() {
     _loadConfigIfEmpty('authKey', _authKey, (value) => _authKey = value);
     if (_authKey.isEmpty) {
@@ -74,7 +82,6 @@ class Config {
     return _authKey;
   }
 
-  // Get URL for PDF
   String urlPdf() {
     _loadConfigIfEmpty('urlPdf', _urlPdf, (value) => _urlPdf = value);
     if (_urlPdf.isEmpty) {
@@ -83,7 +90,6 @@ class Config {
     return _urlPdf;
   }
 
-  // Get URL for Absensi
   String urlAbsn() {
     _loadConfigIfEmpty('urlAbsn', _urlAbsn, (value) => _urlAbsn = value);
     if (_urlAbsn.isEmpty) {

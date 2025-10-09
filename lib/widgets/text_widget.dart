@@ -28,7 +28,6 @@ class TextWidget extends StatelessWidget {
     this.textStyle,
   });
 
-  // Named constructors for common use cases
   const TextWidget.headlineLarge({
     super.key,
     required this.text,
@@ -190,7 +189,6 @@ class TextWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Determine text color based on context and parameters
     final resolvedColor = color ?? theme.colorScheme.onSurface;
 
     final textStyle =
@@ -211,12 +209,11 @@ class TextWidget extends StatelessWidget {
       maxLines: maxLines,
       overflow: overflow,
       style: textStyle,
-      minFontSize: 8.0, // Minimum font size for auto sizing
+      minFontSize: 8.0,
     );
   }
 }
 
-// Alternative simplified version without auto_size_text
 class SimpleTextWidget extends StatelessWidget {
   final String text;
   final TextStyle? style;
@@ -258,50 +255,3 @@ class SimpleTextWidget extends StatelessWidget {
     );
   }
 }
-
-// Usage Examples:
-/*
-// Basic usage
-TextWidget(
-  text: 'Hello World',
-  fontSize: 16.0,
-  color: Colors.black,
-),
-
-// Using named constructors
-TextWidget.headlineLarge(
-  text: 'Welcome Back',
-  color: kBlueColor,
-),
-
-TextWidget.titleMedium(
-  text: 'Settings',
-  maxLines: 1,
-),
-
-TextWidget.bodySmall(
-  text: 'This is a description text',
-  maxLines: 3,
-),
-
-// Specialized usage
-TextWidget.error(
-  text: 'This field is required',
-),
-
-TextWidget.success(
-  text: 'Operation completed successfully',
-),
-
-TextWidget.primary(
-  text: 'Primary action text',
-  fontWeight: FontWeight.bold,
-),
-
-// Simple version
-SimpleTextWidget(
-  text: 'Selectable text',
-  selectable: true,
-  style: TextStyle(fontSize: 16),
-),
-*/

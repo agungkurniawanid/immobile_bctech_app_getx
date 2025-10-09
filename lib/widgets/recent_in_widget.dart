@@ -44,7 +44,7 @@ class RecentIn extends StatelessWidget {
             borderRadius: BorderRadius.circular(8 * fem),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.25),
+                color: Colors.black.withValues(alpha: 0.25),
                 offset: Offset(0 * fem, 4 * fem),
                 blurRadius: 5 * fem,
               ),
@@ -80,7 +80,6 @@ class RecentIn extends StatelessWidget {
                 ),
               ),
 
-              // Vendor Information
               Container(
                 margin: EdgeInsets.fromLTRB(4 * fem, 0, 0, 4 * fem),
                 child: RichText(
@@ -108,7 +107,6 @@ class RecentIn extends StatelessWidget {
                 ),
               ),
 
-              // Last Updated Information
               Container(
                 margin: EdgeInsets.fromLTRB(4 * fem, 0, 0, 0),
                 constraints: BoxConstraints(maxWidth: 130 * fem),
