@@ -391,7 +391,7 @@ class _DetailPidPageState extends State<DetailPidPage> {
                             String todaytime = DateFormat(
                               'yyyy-MM-dd HH:mm:ss',
                             ).format(DateTime.now());
-                            List<Map<String, dynamic>> maptdata;
+
                             if (fromscan == false) {
                               stockdetail.isScanned = "Y";
                             }
@@ -2526,7 +2526,6 @@ class _DetailPidPageState extends State<DetailPidPage> {
   Widget build(BuildContext context) {
     final double baseWidth = 360;
     final double fem = MediaQuery.of(context).size.width / baseWidth;
-    final double ffem = fem * 0.97;
 
     final pidList = pidVM.tolistpid;
     final currentPid = (pidList.isNotEmpty && widget.index < pidList.length)
