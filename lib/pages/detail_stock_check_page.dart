@@ -8,12 +8,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:immobile_app_fixed/config/database_config.dart';
 import 'package:immobile_app_fixed/config/global_variable_config.dart';
+import 'package:immobile_app_fixed/constants/theme_constant.dart';
 import 'package:immobile_app_fixed/constants/utils_constant.dart';
 import 'package:immobile_app_fixed/models/stock_check_model.dart';
 import 'package:immobile_app_fixed/models/stock_detail_model.dart';
 import 'package:immobile_app_fixed/view_models/global_view_model.dart';
 import 'package:immobile_app_fixed/view_models/in_view_model.dart';
 import 'package:immobile_app_fixed/view_models/stock_check_view_model.dart';
+import 'package:immobile_app_fixed/widgets/text_widget.dart';
 import 'package:intl/intl.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
@@ -2017,32 +2019,34 @@ class _DetailStockCheckPage extends State<DetailStockCheckPage> {
     );
   }
 
-  // Barcode Scanning
   Future<void> scanBarcode() async {
-    barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
+    final scannedBarcode = await FlutterBarcodeScanner.scanBarcode(
       "#ff6666",
       "Cancel",
       true,
       ScanMode.BARCODE,
     );
 
-    if (barcodeScanRes != null && barcodeScanRes!.isNotEmpty) {
-      final List<StockDetail> matchingItems = stockcheckVM
-          .toliststock[widget.index!]
-          .detail
-          .where((element) => element.itemCode.contains(barcodeScanRes!))
+    if (!mounted) return;
+
+    if (scannedBarcode.isNotEmpty) {
+      final detailList = stockcheckVM.toliststock[widget.index!].detail ?? [];
+      final List<StockDetail> matchingItems = detailList
+          .where(
+            (element) => element.itemCode?.contains(scannedBarcode) ?? false,
+          )
           .toList();
 
       if (matchingItems.isNotEmpty) {
         pcsctnnotifier.value = false;
 
-        pickedctnmain.value = matchingItems[0].warehouse_stock_main_ctn;
-        pickedctngood.value = matchingItems[0].warehouse_stock_good_ctn;
-        pickedpcsmain.value = matchingItems[0].warehouse_stock_main;
-        pickedpcsgood.value = matchingItems[0].warehouse_stock_good;
+        pickedctnmain.value = matchingItems[0].warehouseStockMainCtn ?? 0;
+        pickedctngood.value = matchingItems[0].warehouseStockGoodCtn ?? 0;
+        pickedpcsmain.value = matchingItems[0].stockMain ?? 0;
+        pickedpcsgood.value = matchingItems[0].stockGood ?? 0;
         fromscan = false;
 
-        showMaterialModalBottomSheet(
+        showModalBottomSheet(
           context: context,
           builder: (context) => modalBottomSheet(matchingItems[0]),
         );
@@ -2050,7 +2054,6 @@ class _DetailStockCheckPage extends State<DetailStockCheckPage> {
     }
   }
 
-  // Search Methods
   List<Widget> _buildActions() {
     return <Widget>[
       Row(
@@ -2092,23 +2095,32 @@ class _DetailStockCheckPage extends State<DetailStockCheckPage> {
   }
 
   void searchWF(String search) {
-    stockcheckVM.toliststock.value[widget.index].detail.clear();
+    final index = widget.index!; // pastikan tidak null
+    stockcheckVM.toliststock[index].detail!.clear();
 
     final List<StockDetail> locallist2 = listdetailstock
-        .where((element) => element.item_code.toLowerCase().contains(search))
+        .where(
+          (element) =>
+              element.itemCode?.toLowerCase().contains(search.toLowerCase()) ??
+              false,
+        )
         .toList();
 
     final List<StockDetail> localsku = listdetailstock
-        .where((element) => element.item_name.toLowerCase().contains(search))
+        .where(
+          (element) =>
+              element.itemName?.toLowerCase().contains(search.toLowerCase()) ??
+              false,
+        )
         .toList();
 
     if (locallist2.isNotEmpty) {
       for (final element in locallist2) {
-        stockcheckVM.toliststock.value[widget.index].detail.add(element);
+        stockcheckVM.toliststock[index].detail!.add(element);
       }
     } else {
       for (final element in localsku) {
-        stockcheckVM.toliststock.value[widget.index].detail.add(element);
+        stockcheckVM.toliststock[index].detail!.add(element);
       }
     }
   }
@@ -2116,8 +2128,9 @@ class _DetailStockCheckPage extends State<DetailStockCheckPage> {
   void _startSearch() {
     setState(() {
       listdetailstock.clear();
+      final index = widget.index!;
       final List<StockDetail> locallist =
-          stockcheckVM.toliststock.value[widget.index].detail;
+          stockcheckVM.toliststock[index].detail ?? [];
       listdetailstock.addAll(locallist);
       _isSearching = true;
     });
@@ -2136,10 +2149,8 @@ class _DetailStockCheckPage extends State<DetailStockCheckPage> {
       _searchQuery.clear();
       _isSearching = false;
 
-      stockcheckVM.toliststock.value[widget.index].detail.clear();
-      stockcheckVM.toliststock.value[widget.index].detail.addAll(
-        listdetailstock,
-      );
+      stockcheckVM.toliststock[widget.index!].detail?.clear();
+      stockcheckVM.toliststock[widget.index!].detail?.addAll(listdetailstock);
     });
   }
 
@@ -2203,14 +2214,14 @@ class _DetailStockCheckPage extends State<DetailStockCheckPage> {
     final double fem = MediaQuery.of(context).size.width / baseWidth;
     final double ffem = fem * 0.97;
 
-    return WillPopScope(
-      onWillPop: () async => false,
+    return PopScope(
+      canPop: false,
       child: SafeArea(
         child: Scaffold(
           appBar: AppBar(
             actions: widget.flag == "history"
                 ? _buildActionsHistory()
-                : stockcheckVM.toliststock.value[widget.index].location != "HQ"
+                : stockcheckVM.toliststock[widget.index!].location != "HQ"
                 ? _buildActions2()
                 : _buildActions(),
             automaticallyImplyLeading: false,
@@ -2228,12 +2239,8 @@ class _DetailStockCheckPage extends State<DetailStockCheckPage> {
                     alignment: Alignment.centerLeft,
                     child: TextWidget(
                       text:
-                          "${stockcheckVM.toliststock.value[widget.index].location}" +
-                          " - " +
-                          "${stockcheckVM.toliststock.value[widget.index].location_name}",
-                      isBlueTxt: false,
+                          "${stockcheckVM.toliststock[widget.index!].location} - ${stockcheckVM.toliststock[widget.index!].locationName}",
                       maxLines: 2,
-                      size: 20,
                       color: Colors.white,
                     ),
                   ),
@@ -2245,8 +2252,7 @@ class _DetailStockCheckPage extends State<DetailStockCheckPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                if (stockcheckVM.toliststock.value[widget.index].location !=
-                        "HQ" &&
+                if (stockcheckVM.toliststock[widget.index!].location != "HQ" &&
                     light0 == false)
                   Visibility(
                     visible: light0 == true,
@@ -2428,62 +2434,72 @@ class _DetailStockCheckPage extends State<DetailStockCheckPage> {
                     ),
                   ),
                 Visibility(
+                  visible:
+                      (stockcheckVM.toliststock[widget.index!].location ??
+                          '') ==
+                      "HQ",
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Wrap(
-                      children: listchoice
-                          .map(
-                            (e) => ChoiceChip(
-                              padding: const EdgeInsets.only(
-                                left: 25,
-                                right: 25,
-                              ),
-                              labelStyle: idPeriodSelected == e.id
-                                  ? const TextStyle(color: Colors.white)
-                                  : const TextStyle(color: Colors.white),
-                              backgroundColor: Colors.grey,
-                              label: Text(e.label),
-                              selected: idPeriodSelected == e.id,
-                              onSelected: (_) {
-                                setState(() {
-                                  idPeriodSelected = e.id;
-                                  final int choice = idPeriodSelected - 1;
-                                  if (choice == 0) {
-                                    GlobalVar.choicecategory = "AB";
-                                  } else if (choice == 1) {
-                                    GlobalVar.choicecategory = "CH";
-                                  } else {
-                                    GlobalVar.choicecategory = "FZ";
-                                  }
-                                });
-                              },
-                              selectedColor: GlobalVar.choicecategory == "AB"
-                                  ? Colors.red
-                                  : GlobalVar.choicecategory == "FZ"
-                                  ? Colors.blue
-                                  : Colors.green,
-                              elevation: 10,
-                            ),
-                          )
-                          .toList(),
                       spacing: 25,
+                      children: listchoice.map((e) {
+                        final bool isSelected = idPeriodSelected == e.id;
+                        return ChoiceChip(
+                          padding: const EdgeInsets.symmetric(horizontal: 25),
+                          label: Text(
+                            e.label,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          backgroundColor: Colors.grey,
+                          selected: isSelected,
+                          selectedColor: isSelected
+                              ? (GlobalVar.choicecategory == "AB"
+                                    ? Colors.red
+                                    : GlobalVar.choicecategory == "FZ"
+                                    ? Colors.blue
+                                    : Colors.green)
+                              : Colors.grey,
+                          elevation: 10,
+                          onSelected: (_) {
+                            setState(() {
+                              idPeriodSelected = e.id;
+
+                              final int choice = idPeriodSelected - 1;
+                              if (choice == 0) {
+                                GlobalVar.choicecategory = "AB";
+                              } else if (choice == 1) {
+                                GlobalVar.choicecategory = "CH";
+                              } else {
+                                GlobalVar.choicecategory = "FZ";
+                              }
+                            });
+                          },
+                        );
+                      }).toList(),
                     ),
                   ),
-                  visible:
-                      stockcheckVM.toliststock.value[widget.index].location ==
-                      "HQ",
                 ),
-                if (light0 == false &&
-                    stockcheckVM.toliststock.value[widget.index].detail
-                        .where((element) => element.is_scanned.contains("Y"))
-                        .isEmpty)
+                // Jika light0 false dan tidak ada item yang di-scan
+                if (!light0 &&
+                    (stockcheckVM.toliststock[widget.index!].detail
+                            ?.where(
+                              (element) =>
+                                  element.isScanned?.contains("Y") ?? false,
+                            )
+                            .isEmpty ??
+                        true))
                   const SizedBox(height: 130),
-                if (light0 == false &&
-                    stockcheckVM.toliststock.value[widget.index].detail
-                        .where((element) => element.is_scanned.contains("Y"))
-                        .isEmpty)
+
+                if (!light0 &&
+                    (stockcheckVM.toliststock[widget.index!].detail
+                            ?.where(
+                              (element) =>
+                                  element.isScanned?.contains("Y") ?? false,
+                            )
+                            .isEmpty ??
+                        true))
                   Center(
-                    child: Container(
+                    child: SizedBox(
                       width: 252 * fem,
                       height: 225 * fem,
                       child: Image.asset(
@@ -2494,29 +2510,26 @@ class _DetailStockCheckPage extends State<DetailStockCheckPage> {
                   )
                 else
                   Obx(() {
-                    final int itemCount = ontap && light0
-                        ? stockcheckVM
-                              .toliststock
-                              .value[widget.index]
-                              .detail
-                              .length
-                        : stockcheckVM
-                                  .toliststock
-                                  .value[widget.index]
-                                  .location ==
-                              "HQ"
-                        ? stockcheckVM.toliststock.value[widget.index].detail
+                    final index = widget.index!;
+                    final detailList =
+                        stockcheckVM.toliststock[index].detail ?? [];
+                    final int itemCount = (ontap && light0)
+                        ? detailList.length
+                        : (stockcheckVM.toliststock[index].location == "HQ")
+                        ? detailList
                               .where(
                                 (element) =>
-                                    element.inventory_group.contains(
-                                      GlobalVar.choicecategory,
-                                    ) &&
-                                    element.is_scanned == "Y",
+                                    (element.inventoryGroup?.contains(
+                                          GlobalVar.choicecategory,
+                                        ) ??
+                                        false) &&
+                                    element.isScanned == "Y",
                               )
                               .length
-                        : stockcheckVM.toliststock.value[widget.index].detail
+                        : detailList
                               .where(
-                                (element) => element.is_scanned.contains("Y"),
+                                (element) =>
+                                    element.isScanned?.contains("Y") ?? false,
                               )
                               .length;
 
@@ -2526,55 +2539,53 @@ class _DetailStockCheckPage extends State<DetailStockCheckPage> {
                         shrinkWrap: true,
                         scrollDirection: Axis.vertical,
                         itemCount: itemCount,
-                        itemBuilder: (BuildContext context, int index) {
-                          final StockDetail item = ontap && light0
+                        itemBuilder: (BuildContext context, int idx) {
+                          final StockDetail item = (ontap && light0)
                               ? stockcheckVM
-                                    .toliststock
-                                    .value[widget.index]
-                                    .detail[index]
-                              : stockcheckVM
-                                        .toliststock
-                                        .value[widget.index]
+                                    .toliststock[widget.index!]
+                                    .detail![idx]
+                              : (stockcheckVM
+                                        .toliststock[widget.index!]
                                         .location ==
-                                    "HQ"
-                              ? stockcheckVM
-                                    .toliststock
-                                    .value[widget.index]
-                                    .detail
-                                    .where(
-                                      (element) =>
-                                          element.inventory_group.contains(
-                                            GlobalVar.choicecategory,
-                                          ) &&
-                                          element.is_scanned == "Y",
-                                    )
-                                    .toList()[index]
-                              : stockcheckVM
-                                    .toliststock
-                                    .value[widget.index]
-                                    .detail
-                                    .where(
-                                      (element) =>
-                                          element.is_scanned.contains("Y"),
-                                    )
-                                    .toList()[index];
+                                    "HQ")
+                              ? (stockcheckVM.toliststock[widget.index!].detail
+                                        ?.where(
+                                          (element) =>
+                                              (element.inventoryGroup?.contains(
+                                                    GlobalVar.choicecategory,
+                                                  ) ??
+                                                  false) &&
+                                              element.isScanned == "Y",
+                                        )
+                                        .toList()[idx] ??
+                                    StockDetail())
+                              : (stockcheckVM.toliststock[widget.index!].detail
+                                        ?.where(
+                                          (element) =>
+                                              element.isScanned?.contains(
+                                                "Y",
+                                              ) ??
+                                              false,
+                                        )
+                                        .toList()[idx] ??
+                                    StockDetail());
 
                           return GestureDetector(
-                            child: ontap && light0
-                                ? headerCard(item)
-                                : headerCard(item),
+                            child: headerCard(item),
                             onTap: () async {
                               if (widget.flag != "history" && ontap) {
                                 pcsctnnotifier.value = false;
 
                                 pickedctnmain.value =
-                                    item.warehouse_stock_main_ctn;
+                                    item.warehouseStockMainCtn ?? 0;
                                 pickedctngood.value =
-                                    item.warehouse_stock_good_ctn;
-                                pickedpcsmain.value = item.warehouse_stock_main;
-                                pickedpcsgood.value = item.warehouse_stock_good;
+                                    item.warehouseStockGoodCtn ?? 0;
+                                pickedpcsmain.value =
+                                    item.warehouseStockMain ?? 0;
+                                pickedpcsgood.value =
+                                    item.warehouseStockGood ?? 0;
 
-                                showMaterialModalBottomSheet(
+                                showModalBottomSheet(
                                   context: context,
                                   builder: (context) => modalBottomSheet(item),
                                 );
@@ -2646,16 +2657,20 @@ class _DetailStockCheckPage extends State<DetailStockCheckPage> {
                         TextButton(
                           onPressed: () {
                             setState(() {
-                              _showMyDialogApprove(
-                                stockcheckVM.toliststock.value[widget.index],
-                                stockcheckVM
-                                    .toliststock
-                                    .value[widget.index]
-                                    .detail[0],
-                                "all",
-                              );
+                              final index = widget.index!;
+                              final stock = stockcheckVM.toliststock[index];
+                              final firstDetail =
+                                  stock.detail != null &&
+                                      stock.detail!.isNotEmpty
+                                  ? stock.detail![0]
+                                  : null;
+
+                              if (firstDetail != null) {
+                                _showMyDialogApprove(stock, firstDetail, "all");
+                              }
                             });
                           },
+
                           style: TextButton.styleFrom(padding: EdgeInsets.zero),
                           child: Container(
                             padding: EdgeInsets.fromLTRB(
@@ -2692,9 +2707,13 @@ class _DetailStockCheckPage extends State<DetailStockCheckPage> {
                       ],
                     ),
                   )
-                else if (stockcheckVM.toliststock.value[widget.index].detail
-                    .where((element) => element.is_scanned.contains("Y"))
-                    .isNotEmpty)
+                else if ((stockcheckVM.toliststock[widget.index!].detail
+                        ?.where(
+                          (element) =>
+                              element.isScanned?.contains("Y") ?? false,
+                        )
+                        .isNotEmpty) ??
+                    false)
                   Container(
                     padding: const EdgeInsets.only(left: 22),
                     width: double.infinity,
