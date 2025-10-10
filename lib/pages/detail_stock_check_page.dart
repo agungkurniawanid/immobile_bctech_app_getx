@@ -1,7 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
-import 'dart:ui';
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:flutter/cupertino.dart';
@@ -24,7 +22,7 @@ class DetailStockCheckPage extends StatefulWidget {
   final int? index;
   final String? flag;
 
-  const DetailStockCheckPage({super.key, this.index, this.flag});
+  const DetailStockCheckPage(this.index, this.flag, {super.key});
 
   @override
   State<DetailStockCheckPage> createState() => _DetailStockCheckPage();

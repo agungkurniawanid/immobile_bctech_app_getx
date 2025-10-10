@@ -1,35 +1,32 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:connectivity/connectivity.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:package_info/package_info.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:immobile/widget/text_field.dart';
-import 'package:immobile/widget/button.dart';
-import 'package:immobile/page/appBottomNavigation.dart';
-import 'package:immobile/viewmodel/loginapi.dart';
-import 'package:immobile/viewmodel/categoryvm.dart';
-import 'package:immobile/config/globalvar.dart';
-import 'package:immobile/config/database.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:immobile_app_fixed/pages/app_bottom_navigation_page.dart';
+import 'package:immobile_app_fixed/view_models/category_view_model.dart';
+import 'package:immobile_app_fixed/view_models/login_api_view_model.dart';
+import 'package:immobile_app_fixed/widgets/button_widget.dart';
+import 'package:immobile_app_fixed/widgets/text_field_widget.dart';
+import 'package:logger/logger.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  String _username, _password;
-  String token;
-  LoginAPI loginService = LoginAPI();
-  CategoryVM categoryvm = CategoryVM();
+  String? _username, _password;
+  String? token;
+  final LoginAPI loginService = LoginAPI();
+  final CategoryVM categoryvm = CategoryVM();
   final _usernameFieldKey = GlobalKey<FormFieldState<String>>();
   final _passwordFieldKey = GlobalKey<FormFieldState<String>>();
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   PackageInfo _packageInfo = PackageInfo(
     appName: 'Unknown',
     packageName: 'Unknown',
@@ -41,10 +38,7 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     _initPackageInfo();
-    _firebaseMessaging.getToken().then((value) {
-      token = value;
-      print("Firebase Token: $token");
-    });
+    _getFirebaseToken();
   }
 
   Future<void> _initPackageInfo() async {
@@ -54,44 +48,70 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  Future<bool> check() async {
-    var connectivityResult = await Connectivity().checkConnectivity();
-    return connectivityResult == ConnectivityResult.mobile ||
-        connectivityResult == ConnectivityResult.wifi;
+  Future<void> _getFirebaseToken() async {
+    try {
+      token = await _firebaseMessaging.getToken();
+      Logger().e("Firebase Token: $token");
+    } catch (e) {
+      Logger().e("Error getting Firebase token: $e");
+    }
+  }
+
+  Future<bool> checkConnectivity() async {
+    return true;
   }
 
   void loginFunc() async {
-    check().then((internet) async {
-      if (internet) {
-        EasyLoading.showProgress(0.0, status: 'Loading Login');
-        loginService.signIn(
-          email: _username.toLowerCase().trim(),
-          password: _password.trim(),
-          token: token,
-        ).then((value) async {
-          if (value == 'SUKSES') {
-            // String userid = await DatabaseHelper.db.checkuserid();
-            // await categoryvm.getcategory(userid, "");
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => AppBottomNavigation()),
-            );
-          } else {
-            _showSnackbar(value == 'NO USER'
-                ? 'No User, Please Contact Admin'
-                : 'Login failed, check your email and password.');
-          }
-          EasyLoading.dismiss();
-        });
+    final hasConnection = await checkConnectivity();
+
+    if (!hasConnection) {
+      _showSnackbar('Check your internet connection');
+      return;
+    }
+
+    try {
+      EasyLoading.showProgress(0.0, status: 'Loading Login');
+
+      final result = await loginService.signIn(
+        email: _username?.toLowerCase().trim() ?? '',
+        password: _password?.trim() ?? '',
+        token: token ?? '',
+      );
+
+      if (result == 'SUKSES') {
+        // String userid = await DatabaseHelper.db.checkuserid();
+        // await categoryvm.getcategory(userid, "");
+
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AppBottomNavigation()),
+        );
       } else {
-        _showSnackbar('Check your internet connection');
+        _showSnackbar(
+          result == 'NO USER'
+              ? 'No User, Please Contact Admin'
+              : 'Login failed, check your email and password.',
+        );
       }
-    });
+    } catch (e) {
+      _showSnackbar('An error occurred during login');
+      Logger().e('Login error: $e');
+    } finally {
+      EasyLoading.dismiss();
+    }
   }
 
   void _showSnackbar(String message) {
-    final snackbar = SnackBar(content: Text(message), backgroundColor: Colors.red);
-    _scaffoldKey.currentState.showSnackBar(snackbar);
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -103,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
           key: _scaffoldKey,
           backgroundColor: Colors.white,
           body: Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -116,12 +136,12 @@ class _LoginPageState extends State<LoginPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Logo Section
-                    Padding(
+                    const Padding(
                       padding: EdgeInsets.only(top: 40.0),
                       child: Column(
                         children: [
-                          Image.asset(
-                            'data/images/logo_login.png', // Update path to your logo
+                          Image(
+                            image: AssetImage('data/images/logo_login.png'),
                             width: 80,
                             height: 80,
                           ),
@@ -137,18 +157,21 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                       ),
                     ),
-                    SizedBox(height: 20),
-                    
+                    const SizedBox(height: 20),
+
                     // Form Container
                     Container(
-                      padding: EdgeInsets.all(20),
-                      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                      padding: const EdgeInsets.all(20),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 20,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
+                            color: Colors.grey.withValues(alpha: 0.2),
                             spreadRadius: 2,
                             blurRadius: 5,
                           ),
@@ -161,10 +184,10 @@ class _LoginPageState extends State<LoginPage> {
                             style: GoogleFonts.roboto(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFFF44236),
+                              color: const Color(0xFFF44236),
                             ),
                           ),
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
                           Form(
                             key: _formKey,
                             child: Column(
@@ -173,35 +196,42 @@ class _LoginPageState extends State<LoginPage> {
                                   fieldKey: _usernameFieldKey,
                                   keyboardType: TextInputType.emailAddress,
                                   isPasswordField: false,
-                                  prefixIcon: Icon(Icons.person),
+                                  prefixIcon: const Icon(Icons.person),
                                   labelText: 'Username',
-                                  validator: (input) => input.isEmpty ? 'Username cannot be empty' : null,
+                                  validator: (input) => input?.isEmpty == true
+                                      ? 'Username cannot be empty'
+                                      : null,
                                   onSaved: (input) => _username = input,
                                 ),
-                                SizedBox(height: 10),
+                                const SizedBox(height: 10),
                                 TextFieldWidget(
+                                  fieldKey: _passwordFieldKey,
                                   isPasswordField: true,
-                                  prefixIcon: Icon(Icons.lock),
+                                  prefixIcon: const Icon(Icons.lock),
                                   labelText: 'Password',
-                                  validator: (input) => input.isEmpty ? 'Password cannot be empty' : null,
+                                  validator: (input) => input?.isEmpty == true
+                                      ? 'Password cannot be empty'
+                                      : null,
                                   onSaved: (input) => _password = input,
-                                        fieldKey: _passwordFieldKey),
-                                
-                                SizedBox(height: 20),
+                                ),
+                                const SizedBox(height: 20),
                                 BtnWidget(
-                                  onPress: () {
-                                    if (_formKey.currentState.validate()) {
-                                      _formKey.currentState.save();
+                                  onPressed: () {
+                                    if (_formKey.currentState?.validate() ==
+                                        true) {
+                                      _formKey.currentState?.save();
                                       loginFunc();
                                     }
                                   },
-                                  btnText: 'LOGIN',
-                                  // Removed backgroundColor parameter
+                                  buttonText: 'LOGIN',
                                 ),
-                                SizedBox(height: 20),
+                                const SizedBox(height: 20),
                                 Text(
-                                  _packageInfo.version ?? '1.0.0',
-                                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                                  _packageInfo.version,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                               ],
                             ),

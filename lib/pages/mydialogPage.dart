@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
 class MyDialogAnimation extends StatefulWidget {
@@ -17,9 +16,7 @@ class _MyDialogAnimationState extends State<MyDialogAnimation>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-    );
+    _controller = AnimationController(vsync: this);
 
     // Delay the execution of _showDialogAnimation until after initState completes.
     Future.delayed(Duration.zero, () {

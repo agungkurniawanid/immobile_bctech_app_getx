@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:immobile_app_fixed/constants/theme_constant.dart';
-import 'package:immobile_app_fixed/pages/homePage.dart';
+import 'package:immobile_app_fixed/pages/home_page.dart';
 import 'package:immobile_app_fixed/pages/profilePage.dart';
 import 'package:immobile_app_fixed/view_models/global_view_model.dart';
 

@@ -50,6 +50,8 @@ class StockRequestVM extends GetxController {
   String replyFromServer = '';
   String collectionName = '';
 
+  final RxString choicesr = ''.obs;
+
   bool validationButtonRefresh = false;
 
   @override

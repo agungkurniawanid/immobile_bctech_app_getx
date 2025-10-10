@@ -117,6 +117,27 @@ class InVM extends GetxController {
     }
   }
 
+  Future<String> getPoWithDoc(String documentNumber) async {
+    try {
+      final collections = ['AB', 'CH', 'FZ'];
+      for (final col in collections) {
+        final query = await FirebaseFirestore.instance
+            .collection('in/$col/header')
+            .where('EBELN', isEqualTo: documentNumber)
+            .limit(1)
+            .get();
+
+        if (query.docs.isNotEmpty) {
+          return col;
+        }
+      }
+      return "0";
+    } catch (e) {
+      debugPrint('Error in getPoWithDoc: $e');
+      return "0";
+    }
+  }
+
   Future<void> sendHistory(
     InModel inmodel,
     List<Map<String, dynamic>> tdata,
