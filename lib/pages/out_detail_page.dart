@@ -2040,6 +2040,7 @@ class OutDetailPageState extends State<OutDetailPage>
                   ),
                 ),
                 Visibility(
+                  visible: widget.choice == "SR",
                   child: Container(
                     // autogroupo4gxU9e (184gc6gbsm3LZWBCTQo4Gx)
                     margin: EdgeInsets.fromLTRB(
@@ -2086,78 +2087,41 @@ class OutDetailPageState extends State<OutDetailPage>
                                 ),
                               ),
                               Align(
+                                alignment: Alignment.centerRight,
                                 child: SizedBox(
-                                  width:
-                                      outdetail.uom
-                                                      .where(
-                                                        (element) =>
-                                                            element.uom ==
-                                                            "CTN",
-                                                      )
-                                                      .toList()
-                                                      .length >
-                                                  0 &&
-                                              outdetail.uom
-                                                      .where(
-                                                        (element) =>
-                                                            element.uom ==
-                                                            "CTN",
-                                                      )
-                                                      .toList()[0]
-                                                      .totalPicked
-                                                      .length ==
-                                                  2 ||
-                                          outdetail.uom
-                                                  .where(
-                                                    (element) =>
-                                                        element.uom == "CTN",
-                                                  )
-                                                  .toList()
-                                                  .length ==
-                                              0 ||
-                                          outdetail.uom
-                                                      .where(
-                                                        (element) =>
-                                                            element.uom ==
-                                                            "CTN",
-                                                      )
-                                                      .toList()
-                                                      .length >
-                                                  0 &&
-                                              outdetail.uom
-                                                      .where(
-                                                        (element) =>
-                                                            element.uom ==
-                                                            "CTN",
-                                                      )
-                                                      .toList()[0]
-                                                      .totalPicked
-                                                      .length ==
-                                                  1
-                                      ? GlobalVar.width * 0.08
-                                      : GlobalVar.width * 0.15,
+                                  width: (() {
+                                    final ctnItem = outdetail.uom.where(
+                                      (e) => e.uom == "CTN",
+                                    );
+                                    if (ctnItem.isEmpty) {
+                                      return GlobalVar.width * 0.15;
+                                    }
+
+                                    final length =
+                                        ctnItem.first.totalPicked.length;
+                                    return (length == 1 || length == 2)
+                                        ? GlobalVar.width * 0.08
+                                        : GlobalVar.width * 0.15;
+                                  })(),
                                   height: 19 * fem,
                                   child: Text(
-                                    outdetail.uom
-                                                .where(
-                                                  (element) =>
-                                                      element.uom == "CTN",
-                                                )
-                                                .toList()
-                                                .length >
-                                            0
-                                        ? '${outdetail.uom.where((element) => element.uom == "CTN").toList()[0].total_item}'
-                                        : "0",
+                                    (() {
+                                      final ctnItem = outdetail.uom.where(
+                                        (e) => e.uom == "CTN",
+                                      );
+                                      return ctnItem.isNotEmpty
+                                          ? ctnItem.first.totalItem
+                                          : "0";
+                                    })(),
                                     style: safeGoogleFont(
                                       'Roboto',
                                       fontSize: 16 * ffem,
                                       fontWeight: FontWeight.w400,
                                       height: 1.1725 * ffem / fem,
-                                      color: Color(0xff000000),
+                                      color: const Color(0xff000000),
                                     ),
                                   ),
                                 ),
-                                alignment: Alignment.centerRight,
                               ),
                               Positioned(
                                 // rectangle18jUt (596:1050)
@@ -2199,14 +2163,12 @@ class OutDetailPageState extends State<OutDetailPage>
                             ],
                           ),
                         ),
-                        Container(
-                          // totaliteminputmAg (18:828)
+                        SizedBox(
                           width: 153 * fem,
                           height: double.infinity,
                           child: Stack(
                             children: [
                               Positioned(
-                                // rectangle17ibi (18:829)
                                 left: 0 * fem,
                                 top: 6 * fem,
                                 child: Align(
@@ -2226,7 +2188,6 @@ class OutDetailPageState extends State<OutDetailPage>
                                 ),
                               ),
                               Positioned(
-                                // rectangle182sJ (18:830)
                                 left: 10 * fem,
                                 top: 0 * fem,
                                 child: Align(
@@ -2242,7 +2203,6 @@ class OutDetailPageState extends State<OutDetailPage>
                                 ),
                               ),
                               Positioned(
-                                // requireditemqtypcsMeg (18:831)
                                 left: 11 * fem,
                                 top: 0 * fem,
                                 child: Align(
@@ -2263,78 +2223,41 @@ class OutDetailPageState extends State<OutDetailPage>
                                 ),
                               ),
                               Align(
+                                alignment: Alignment.centerRight,
                                 child: SizedBox(
-                                  width:
-                                      outdetail.uom
-                                                      .where(
-                                                        (element) =>
-                                                            element.uom ==
-                                                            "PCS",
-                                                      )
-                                                      .toList()
-                                                      .length >
-                                                  0 &&
-                                              outdetail.uom
-                                                      .where(
-                                                        (element) =>
-                                                            element.uom ==
-                                                            "PCS",
-                                                      )
-                                                      .toList()[0]
-                                                      .totalItem
-                                                      .length ==
-                                                  2 ||
-                                          outdetail.uom
-                                                  .where(
-                                                    (element) =>
-                                                        element.uom == "PCS",
-                                                  )
-                                                  .toList()
-                                                  .length ==
-                                              0 ||
-                                          outdetail.uom
-                                                      .where(
-                                                        (element) =>
-                                                            element.uom ==
-                                                            "PCS",
-                                                      )
-                                                      .toList()
-                                                      .length >
-                                                  0 &&
-                                              outdetail.uom
-                                                      .where(
-                                                        (element) =>
-                                                            element.uom ==
-                                                            "PCS",
-                                                      )
-                                                      .toList()[0]
-                                                      .totalItem
-                                                      .length ==
-                                                  1
-                                      ? GlobalVar.width * 0.08
-                                      : GlobalVar.width * 0.15,
+                                  width: (() {
+                                    final pcsItem = outdetail.uom.where(
+                                      (e) => e.uom == "PCS",
+                                    );
+                                    if (pcsItem.isEmpty) {
+                                      return GlobalVar.width * 0.15;
+                                    }
+
+                                    final length =
+                                        pcsItem.first.totalItem.length;
+                                    return (length == 1 || length == 2)
+                                        ? GlobalVar.width * 0.08
+                                        : GlobalVar.width * 0.15;
+                                  })(),
                                   height: 19 * fem,
                                   child: Text(
-                                    outdetail.uom
-                                                .where(
-                                                  (element) =>
-                                                      element.uom == "PCS",
-                                                )
-                                                .toList()
-                                                .length >
-                                            0
-                                        ? '${outdetail.uom.where((element) => element.uom == "PCS").toList()[0].total_item}'
-                                        : "0",
+                                    (() {
+                                      final pcsItem = outdetail.uom.where(
+                                        (e) => e.uom == "PCS",
+                                      );
+                                      return pcsItem.isNotEmpty
+                                          ? pcsItem.first.totalItem
+                                          : "0";
+                                    })(),
                                     style: safeGoogleFont(
                                       'Roboto',
                                       fontSize: 16 * ffem,
                                       fontWeight: FontWeight.w400,
                                       height: 1.1725 * ffem / fem,
-                                      color: Color(0xff000000),
+                                      color: const Color(0xff000000),
                                     ),
                                   ),
                                 ),
-                                alignment: Alignment.centerRight,
                               ),
                             ],
                           ),
@@ -2342,229 +2265,208 @@ class OutDetailPageState extends State<OutDetailPage>
                       ],
                     ),
                   ),
-                  visible: widget.choice == "SR",
                 ),
                 Visibility(
+                  visible: widget.choice == "SR",
                   child: Container(
-                    // autogroupo4gxU9e (184gc6gbsm3LZWBCTQo4Gx)
-                    margin: EdgeInsets.fromLTRB(
-                      0 * fem,
-                      0 * fem,
-                      0 * fem,
-                      10 * fem,
-                    ),
+                    margin: EdgeInsets.only(bottom: 10 * fem),
                     width: double.infinity,
                     height: 46 * fem,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         GestureDetector(
-                          child: Container(
-                            // unitofmeasurementinputoSp (18:833)
-                            margin: EdgeInsets.fromLTRB(
-                              0 * fem,
-                              0 * fem,
-                              12 * fem,
-                              0 * fem,
-                            ),
-                            width: 162 * fem,
-                            height: double.infinity,
-                            child: Stack(
-                              children: [
-                                Positioned(
-                                  // rectangle17iZn (18:834)
-                                  left: 0 * fem,
-                                  top: 6 * fem,
-                                  child: Align(
-                                    child: SizedBox(
-                                      width: 162 * fem,
-                                      height: 40 * fem,
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            4 * fem,
-                                          ),
-                                          border: Border.all(color: Colors.red),
-                                          color: anyctn == true
-                                              ? Colors.white
-                                              : Color(0xffe0e0e0),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Align(
-                                  child: SizedBox(
-                                    width:
-                                        pickedctn.value.toString().length ==
-                                                1 ||
-                                            pickedctn.value.toString().length ==
-                                                2
-                                        ? GlobalVar.width * 0.08
-                                        : GlobalVar.width * 0.15,
-                                    height: 19 * fem,
-                                    child: ValueListenableBuilder(
-                                      valueListenable: pickedctn,
-                                      builder:
-                                          (
-                                            BuildContext context,
-                                            int value,
-                                            Widget child,
-                                          ) {
-                                            return Text(
-                                              '${pickedctn.value}',
-                                              style: safeGoogleFont(
-                                                'Roboto',
-                                                fontSize: 16 * ffem,
-                                                fontWeight: FontWeight.w400,
-                                                height: 1.1725 * ffem / fem,
-                                                color: Color(0xff000000),
-                                              ),
-                                            );
-                                          },
-                                    ),
-                                  ),
-                                  alignment: Alignment.centerRight,
-                                ),
-                                Positioned(
-                                  // rectangle18jUt (596:1050)
-                                  left: 10 * fem,
-                                  top: 0 * fem,
-                                  child: Align(
-                                    child: SizedBox(
-                                      width: 100 * fem,
-                                      height: 14 * fem,
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: Color(0xffffffff),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  // requireditemqtyctnGDv (596:1051)
-                                  left: 11 * fem,
-                                  top: 0 * fem,
-                                  child: Align(
-                                    child: SizedBox(
-                                      width: 100 * fem,
-                                      height: 15 * fem,
-                                      child: Text(
-                                        'Qty Picked (CTN)',
-                                        style: safeGoogleFont(
-                                          'Roboto',
-                                          fontSize: 12 * ffem,
-                                          fontWeight: FontWeight.w400,
-                                          height: 1.1725 * ffem / fem,
-                                          color: Colors.red,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                           onTap: () {
-                            if (anyctn == true) {
+                            if (anyctn) {
                               backupctn = pickedctn.value;
                               tabs = 0;
                               _controllerctn = TextEditingController(
                                 text: pickedctn.value.toString(),
                               );
-                              typeIndexctn = int.parse(_controllerctn.text);
-                              if (anypcs == false) {
+                              typeIndexctn = int.parse(_controllerctn!.text);
+
+                              if (!anypcs) {
                                 backuppcs = pickedpcs.value;
                                 _controllerpcs = TextEditingController(
                                   text: "0",
                                 );
-
-                                typeIndexpcs = int.parse(_controllerpcs.text);
+                                typeIndexpcs = int.parse(_controllerpcs!.text);
                               } else {
                                 _controllerpcs = TextEditingController(
                                   text: pickedpcs.value.toString(),
                                 );
-
-                                typeIndexpcs = int.parse(_controllerpcs.text);
+                                typeIndexpcs = int.parse(_controllerpcs!.text);
                                 backuppcs = pickedpcs.value;
                               }
 
                               _showMyDialog(
                                 outdetail,
                                 "ctn",
-                                backupctn,
-                                backuppcs,
+                                backupctn!,
+                                backuppcs!,
                               );
                             } else {
                               tabs = 0;
                             }
                           },
+                          child: Container(
+                            margin: EdgeInsets.only(right: 12 * fem),
+                            width: 162 * fem,
+                            height: double.infinity,
+                            child: Stack(
+                              children: [
+                                Positioned(
+                                  left: 0,
+                                  top: 6 * fem,
+                                  child: Container(
+                                    width: 162 * fem,
+                                    height: 40 * fem,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(
+                                        4 * fem,
+                                      ),
+                                      border: Border.all(color: Colors.red),
+                                      color: anyctn
+                                          ? Colors.white
+                                          : Color(0xffe0e0e0),
+                                    ),
+                                  ),
+                                ),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: SizedBox(
+                                    width:
+                                        pickedctn.value.toString().length <= 2
+                                        ? GlobalVar.width * 0.08
+                                        : GlobalVar.width * 0.15,
+                                    height: 19 * fem,
+                                    child: ValueListenableBuilder<int>(
+                                      valueListenable: pickedctn,
+                                      builder: (context, value, child) {
+                                        return Text(
+                                          '$value',
+                                          style: safeGoogleFont(
+                                            'Roboto',
+                                            fontSize: 16 * ffem,
+                                            fontWeight: FontWeight.w400,
+                                            height: 1.1725 * ffem / fem,
+                                            color: const Color(0xff000000),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 10 * fem,
+                                  top: 0,
+                                  child: Container(
+                                    width: 100 * fem,
+                                    height: 14 * fem,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 11 * fem,
+                                  top: 0,
+                                  child: SizedBox(
+                                    width: 100 * fem,
+                                    height: 15 * fem,
+                                    child: Text(
+                                      'Qty Picked (CTN)',
+                                      style: safeGoogleFont(
+                                        'Roboto',
+                                        fontSize: 12 * ffem,
+                                        fontWeight: FontWeight.w400,
+                                        height: 1.1725 * ffem / fem,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                         GestureDetector(
-                          child: Container(
-                            // totaliteminputmAg (18:828)
+                          onTap: () {
+                            if (anypcs) {
+                              backupctn = pickedctn.value;
+                              backuppcs = pickedpcs.value;
+                              tabs = 1;
+                              _controllerpcs = TextEditingController(
+                                text: pickedpcs.value.toString(),
+                              );
+                              typeIndexpcs = int.parse(_controllerpcs!.text);
+
+                              if (!anyctn) {
+                                backupctn = pickedctn.value;
+                                _controllerctn = TextEditingController(
+                                  text: "0",
+                                );
+                                typeIndexctn = int.parse(_controllerctn!.text);
+                              } else {
+                                _controllerctn = TextEditingController(
+                                  text: pickedctn.value.toString(),
+                                );
+                                typeIndexctn = int.parse(_controllerctn!.text);
+                                backupctn = pickedctn.value;
+                              }
+                              _showMyDialog(
+                                outdetail,
+                                "pcs",
+                                backupctn!,
+                                backuppcs!,
+                              );
+                            } else {
+                              tabs = 1;
+                            }
+                          },
+                          child: SizedBox(
                             width: 153 * fem,
                             height: double.infinity,
                             child: Stack(
                               children: [
                                 Positioned(
-                                  // rectangle17ibi (18:829)
-                                  left: 0 * fem,
+                                  left: 0,
                                   top: 6 * fem,
-                                  child: Align(
-                                    child: SizedBox(
-                                      width: 153 * fem,
-                                      height: 40 * fem,
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            4 * fem,
-                                          ),
-                                          border: Border.all(
-                                            color: Colors.blue,
-                                          ),
-                                          color: anypcs == true
-                                              ? Colors.white
-                                              : Color(0xffe0e0e0),
-                                        ),
+                                  child: Container(
+                                    width: 153 * fem,
+                                    height: 40 * fem,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(
+                                        4 * fem,
                                       ),
+                                      border: Border.all(color: Colors.blue),
+                                      color: anypcs
+                                          ? Colors.white
+                                          : Color(0xffe0e0e0),
                                     ),
                                   ),
                                 ),
                                 Positioned(
-                                  // rectangle182sJ (18:830)
                                   left: 10 * fem,
-                                  top: 0 * fem,
-                                  child: Align(
-                                    child: SizedBox(
-                                      width: 110 * fem,
-                                      height: 14 * fem,
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: Color(0xffffffff),
-                                        ),
-                                      ),
-                                    ),
+                                  top: 0,
+                                  child: Container(
+                                    width: 110 * fem,
+                                    height: 14 * fem,
+                                    color: Colors.white,
                                   ),
                                 ),
                                 Positioned(
-                                  // requireditemqtypcsMeg (18:831)
                                   left: 11 * fem,
-                                  top: 0 * fem,
-                                  child: Align(
-                                    child: SizedBox(
-                                      width: 110 * fem,
-                                      height: 15 * fem,
-                                      child: Text(
-                                        'Qty Picked (PCS)',
-                                        style: safeGoogleFont(
-                                          'Roboto',
-                                          fontSize: 12 * ffem,
-                                          fontWeight: FontWeight.w400,
-                                          height: 1.1725 * ffem / fem,
-                                          color: Colors.blue,
-                                        ),
+                                  top: 0,
+                                  child: SizedBox(
+                                    width: 110 * fem,
+                                    height: 15 * fem,
+                                    child: Text(
+                                      'Qty Picked (PCS)',
+                                      style: safeGoogleFont(
+                                        'Roboto',
+                                        fontSize: 12 * ffem,
+                                        fontWeight: FontWeight.w400,
+                                        height: 1.1725 * ffem / fem,
+                                        color: Colors.blue,
                                       ),
                                     ),
                                   ),
@@ -2573,91 +2475,38 @@ class OutDetailPageState extends State<OutDetailPage>
                                   alignment: Alignment.centerRight,
                                   child: SizedBox(
                                     width:
-                                        pickedpcs.value.toString().length ==
-                                                1 ||
-                                            pickedpcs.value.toString().length ==
-                                                2
+                                        pickedpcs.value.toString().length <= 2
                                         ? GlobalVar.width * 0.08
                                         : GlobalVar.width * 0.15,
                                     height: 19 * fem,
-                                    child: ValueListenableBuilder(
+                                    child: ValueListenableBuilder<int>(
                                       valueListenable: pickedpcs,
-                                      builder:
-                                          (
-                                            BuildContext context,
-                                            int value,
-                                            Widget child,
-                                          ) {
-                                            return Text(
-                                              outdetail.uom
-                                                          .where(
-                                                            (element) =>
-                                                                element.uom ==
-                                                                "PCS",
-                                                          )
-                                                          .toList()
-                                                          .length >
-                                                      0
-                                                  ? '${pickedpcs.value}'
-                                                  : "0",
-                                              style: safeGoogleFont(
-                                                'Roboto',
-                                                fontSize: 16 * ffem,
-                                                fontWeight: FontWeight.w400,
-                                                height: 1.1725 * ffem / fem,
-                                                color: Color(0xff000000),
-                                              ),
-                                            );
-                                          },
+                                      builder: (context, value, child) {
+                                        return Text(
+                                          '$value',
+                                          style: safeGoogleFont(
+                                            'Roboto',
+                                            fontSize: 16 * ffem,
+                                            fontWeight: FontWeight.w400,
+                                            height: 1.1725 * ffem / fem,
+                                            color: const Color(0xff000000),
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          onTap: () {
-                            if (anypcs == true) {
-                              backupctn = pickedctn.value;
-                              backuppcs = pickedpcs.value;
-                              tabs = 1;
-                              _controllerpcs = TextEditingController(
-                                text: pickedpcs.value.toString(),
-                              );
-                              typeIndexpcs = int.parse(_controllerpcs.text);
-                              if (anyctn == false) {
-                                backupctn = pickedctn.value;
-                                _controllerctn = TextEditingController(
-                                  text: "0",
-                                );
-
-                                typeIndexctn = int.parse(_controllerctn.text);
-                              } else {
-                                _controllerctn = TextEditingController(
-                                  text: pickedctn.value.toString(),
-                                );
-
-                                typeIndexctn = int.parse(_controllerctn.text);
-                                backupctn = pickedctn.value;
-                              }
-
-                              _showMyDialog(
-                                outdetail,
-                                "pcs",
-                                backupctn,
-                                backuppcs,
-                              );
-                            } else {
-                              tabs = 1;
-                            }
-                          },
                         ),
                       ],
                     ),
                   ),
-                  visible: widget.choice == "SR",
                 ),
                 SizedBox(height: 10),
                 Visibility(
+                  visible: widget.choice == "SR",
                   child: Container(
                     // autogroupf5ebdRu (UM6eDoseJp3PyzDupvF5EB)
                     margin: EdgeInsets.fromLTRB(
@@ -2707,36 +2556,30 @@ class OutDetailPageState extends State<OutDetailPage>
                           ),
                           onTap: () {
                             scanforbarcode = false;
-                            if (outdetail.uom
-                                    .where((element) => element.uom == "CTN")
-                                    .toList()
-                                    .length !=
-                                0) {
+
+                            final ctnItem = outdetail.uom.where(
+                              (e) => e.uom == "CTN",
+                            );
+                            if (ctnItem.isNotEmpty) {
                               pickedctn.value = int.parse(
-                                outdetail.uom
-                                    .where((element) => element.uom == "CTN")
-                                    .toList()[0]
-                                    .totalPicked,
+                                ctnItem.first.totalPicked,
                               );
                             }
-                            if (outdetail.uom
-                                    .where((element) => element.uom == "PCS")
-                                    .toList()
-                                    .length !=
-                                0) {
+
+                            final pcsItem = outdetail.uom.where(
+                              (e) => e.uom == "PCS",
+                            );
+                            if (pcsItem.isNotEmpty) {
                               pickedpcs.value = int.parse(
-                                outdetail.uom
-                                    .where((element) => element.uom == "PCS")
-                                    .toList()[0]
-                                    .totalPicked,
+                                pcsItem.first.totalPicked,
                               );
                             }
+
                             Get.back();
                           },
                         ),
                         GestureDetector(
                           child: Container(
-                            // savebuttonSnf (11:1278)
                             padding: EdgeInsets.fromLTRB(
                               24 * fem,
                               5 * fem,
@@ -2756,7 +2599,6 @@ class OutDetailPageState extends State<OutDetailPage>
                               ],
                             ),
                             child: Center(
-                              // checkcircle7du (11:1280)
                               child: SizedBox(
                                 width: 30 * fem,
                                 height: 30 * fem,
@@ -2771,47 +2613,33 @@ class OutDetailPageState extends State<OutDetailPage>
                           onTap: () {
                             setState(() {
                               scanforbarcode = false;
-                              if (outdetail.uom
-                                      .where((element) => element.uom == "CTN")
-                                      .toList()
-                                      .length !=
-                                  0) {
-                                outdetail.uom
-                                    .where((element) => element.uom == "CTN")
-                                    .toList()[0]
-                                    .totalPicked = pickedctn.value
+                              final ctnItem = outdetail.uom.where(
+                                (e) => e.uom == "CTN",
+                              );
+                              if (ctnItem.isNotEmpty) {
+                                ctnItem.first.totalPicked = pickedctn.value
                                     .toString();
-                                DateTime now = DateTime.now();
-                                String formattedDate = DateFormat(
+                                final now = DateTime.now();
+                                outdetail.approveName = globalVM.username.value;
+                                outdetail.updatedAt = DateFormat(
                                   'yyyy-MM-dd kk:mm:ss',
                                 ).format(now);
-                                outdetail.approvename = globalVM.username.value;
-                                outdetail.updatedat = formattedDate;
-                                // Logger().e(outdetail.uom
-                                //     .where(
-                                //         (element) => element.uom == "CTN")
-                                //     .toList()[0]
-                                //     .totalPicked);
                               }
-                              if (outdetail.uom
-                                      .where((element) => element.uom == "PCS")
-                                      .toList()
-                                      .length !=
-                                  0) {
-                                DateTime now = DateTime.now();
-                                outdetail.uom
-                                    .where((element) => element.uom == "PCS")
-                                    .toList()[0]
-                                    .totalPicked = pickedpcs.value
-                                    .toString();
-                                String formattedDate = DateFormat(
-                                  'yyyy-MM-dd kk:mm:ss',
-                                ).format(now);
-                                outdetail.approvename = globalVM.username.value;
-                                outdetail.updatedat = formattedDate;
 
-                                // pickedpcs.value = typeIndexpcs;
+                              // Update PCS jika ada
+                              final pcsItem = outdetail.uom.where(
+                                (e) => e.uom == "PCS",
+                              );
+                              if (pcsItem.isNotEmpty) {
+                                pcsItem.first.totalPicked = pickedpcs.value
+                                    .toString();
+                                final now = DateTime.now();
+                                outdetail.approvename = globalVM.username.value;
+                                outdetail.updatedat = DateFormat(
+                                  'yyyy-MM-dd kk:mm:ss',
+                                ).format(now);
                               }
+
                               Get.back();
                             });
                           },
@@ -2819,7 +2647,6 @@ class OutDetailPageState extends State<OutDetailPage>
                       ],
                     ),
                   ),
-                  visible: widget.choice == "SR",
                 ),
                 //bates
               ],
