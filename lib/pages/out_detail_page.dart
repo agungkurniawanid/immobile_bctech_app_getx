@@ -2613,31 +2613,48 @@ class OutDetailPageState extends State<OutDetailPage>
                           onTap: () {
                             setState(() {
                               scanforbarcode = false;
-                              final ctnItem = outdetail.uom.where(
+
+                              final now = DateTime.now();
+                              final formattedDate = DateFormat(
+                                'yyyy-MM-dd kk:mm:ss',
+                              ).format(now);
+
+                              final ctnIndex = outdetail.uom.indexWhere(
                                 (e) => e.uom == "CTN",
                               );
-                              if (ctnItem.isNotEmpty) {
-                                ctnItem.first.totalPicked = pickedctn.value
-                                    .toString();
-                                final now = DateTime.now();
-                                outdetail.approveName = globalVM.username.value;
-                                outdetail.updatedAt = DateFormat(
-                                  'yyyy-MM-dd kk:mm:ss',
-                                ).format(now);
+                              if (ctnIndex != -1) {
+                                final updatedUom = List<DetailDouble>.from(
+                                  outdetail.uom,
+                                );
+                                updatedUom[ctnIndex] = updatedUom[ctnIndex]
+                                    .copyWith(
+                                      totalPicked: pickedctn.value.toString(),
+                                    );
+
+                                outdetail = outdetail.copyWith(
+                                  uom: updatedUom,
+                                  approveName: globalVM.username.value,
+                                  updatedAt: formattedDate,
+                                );
                               }
 
-                              // Update PCS jika ada
-                              final pcsItem = outdetail.uom.where(
+                              final pcsIndex = outdetail.uom.indexWhere(
                                 (e) => e.uom == "PCS",
                               );
-                              if (pcsItem.isNotEmpty) {
-                                pcsItem.first.totalPicked = pickedpcs.value
-                                    .toString();
-                                final now = DateTime.now();
-                                outdetail.approvename = globalVM.username.value;
-                                outdetail.updatedat = DateFormat(
-                                  'yyyy-MM-dd kk:mm:ss',
-                                ).format(now);
+                              if (pcsIndex != -1) {
+                                final updatedUom = List<DetailDouble>.from(
+                                  outdetail.uom,
+                                );
+                                updatedUom[pcsIndex] = updatedUom[pcsIndex]
+                                    .copyWith(
+                                      totalPicked: pickedpcs.value.toString(),
+                                    );
+
+                                outdetail = outdetail.copyWith(
+                                  uom: updatedUom,
+                                  approveName: globalVM.username.value,
+                                  updatedAt: formattedDate,
+                                );
                               }
 
                               Get.back();
@@ -2664,14 +2681,12 @@ class OutDetailPageState extends State<OutDetailPage>
 
       if (GlobalVar.choicecategory == "ALL" || widget.from == "history") {
         listbyinventorygroup = stockrequestVM.srOutList.value
-            .where((element) => element.documentno == widget.documentno)
-            .toList()[0]
+            .firstWhere((element) => element.documentno == widget.documentno)
             .detail
             .toList();
       } else {
         listbyinventorygroup = stockrequestVM.srOutList.value
-            .where((element) => element.documentno == widget.documentno)
-            .toList()[0]
+            .firstWhere((element) => element.documentno == widget.documentno)
             .detail
             .where(
               (element) => element.inventoryGroup == GlobalVar.choicecategory,
@@ -2679,26 +2694,19 @@ class OutDetailPageState extends State<OutDetailPage>
             .toList();
       }
 
-      for (var j = 0; j < listbyinventorygroup.length; j++) {
-        var listbyuom = listbyinventorygroup[j].uom
-            .where((element) => element.uom == "CTN")
-            .toList();
-        if (listbyuom.length == 0) {
-        } else {
-          for (var i = 0; i < listbyuom.length; i++) {
-            if (flag == "required") {
-              total += double.tryParse(listbyuom[i].total_item) ?? 0;
-            } else {
-              total += double.tryParse(listbyuom[i].totalPicked) ?? 0;
-            }
-          }
+      for (var item in listbyinventorygroup) {
+        final ctnUom = item.uom.where((e) => e.uom == "CTN");
+        for (var u in ctnUom) {
+          total += (flag == "required")
+              ? double.tryParse(u.totalItem) ?? 0
+              : double.tryParse(u.totalPicked) ?? 0;
         }
       }
-      int totalint = total.toInt();
-      String totalstring = totalint.toString();
-      return totalstring;
+
+      return total.toInt().toString();
     } catch (e) {
       Logger().e(e);
+      return "0"; // <-- selalu return String
     }
   }
 
@@ -2794,7 +2802,6 @@ class OutDetailPageState extends State<OutDetailPage>
     double fem = MediaQuery.of(context).size.width / baseWidth;
     double ffem = fem * 0.97;
     return Container(
-      // ambientitemsNc3 (11:700)
       padding: EdgeInsets.fromLTRB(5 * fem, 6 * fem, 5 * fem, 6 * fem),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -2819,7 +2826,6 @@ class OutDetailPageState extends State<OutDetailPage>
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
-                  // autogroupqv3yU2o (UM6MLiAjYe9vSwTCurqV3y)
                   margin: EdgeInsets.fromLTRB(
                     0 * fem,
                     0 * fem,
@@ -2831,7 +2837,6 @@ class OutDetailPageState extends State<OutDetailPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        // vitasoylemonteadrink250mlNts (11:724)
                         margin: EdgeInsets.fromLTRB(
                           0 * fem,
                           0 * fem,
